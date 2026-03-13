@@ -1,176 +1,82 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>555 İnşaat - Admin Panel</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>555 İnşaat - Giriş</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body>
-  <div class="layout">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="logo">
-        <h2>555 İnşaat</h2>
-        <p>Admin Panel</p>
-      </div>
-
-      <nav class="menu">
-        <a href="#" class="menu-item active">Dashboard</a>
-        <a href="#" class="menu-item">İşçilər</a>
-        <a href="#" class="menu-item">Obyektlər</a>
-        <a href="#" class="menu-item">Davamiyyət</a>
-        <a href="#" class="menu-item">Maaşlar</a>
-        <a href="#" class="menu-item">Avanslar</a>
-        <a href="#" class="menu-item">Cərimələr</a>
-        <a href="#" class="menu-item">Tapşırıqlar</a>
-        <a href="#" class="menu-item">Hesabatlar</a>
-        <a href="#" class="menu-item">Fayllar</a>
-        <a href="#" class="menu-item">İstifadəçilər</a>
-        <a href="#" class="menu-item">Ayarlar</a>
-        <a href="#" class="menu-item">Profil</a>
-        <a href="#" class="menu-item logout">Çıxış</a>
-      </nav>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-
-      <!-- TOPBAR -->
-      <header class="topbar">
-        <div class="topbar-left">
-          <h1>Dashboard</h1>
-          <p>555 İnşaat idarəetmə panelinə xoş gəlmisiniz</p>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-logo">
+            <i class="bi bi-building"></i>
+            <h1>555 İnşaat</h1>
+            <p>İşçi İdarəetmə Sistemi</p>
         </div>
 
-        <div class="topbar-right">
-          <input type="text" placeholder="Axtarış..." class="search-box" />
-          <button class="notif-btn">🔔</button>
-          <div class="admin-box">
-            <div class="admin-avatar">A</div>
-            <div>
-              <strong>Admin</strong>
-              <small>Super Admin</small>
+        <div class="login-card">
+            <h2>Sistemə Giriş</h2>
+            
+            <div id="error-message" class="alert alert-danger d-none"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label><i class="bi bi-person"></i> İstifadəçi adı</label>
+                    <input type="text" id="username" class="form-control" placeholder="İstifadəçi adı daxil edin" required>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="bi bi-lock"></i> Şifrə</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" class="form-control" placeholder="Şifrə daxil edin" required>
+                        <button type="button" class="toggle-password" onclick="togglePassword()">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-check">
+                    <input type="checkbox" id="remember" class="form-check-input">
+                    <label for="remember" class="form-check-label">Məni yadda saxla</label>
+                </div>
+                
+                <button type="submit" class="btn-login">
+                    <i class="bi bi-box-arrow-in-right"></i> Daxil ol
+                </button>
+            </form>
+        </div>
+
+        <!-- Demo Accounts -->
+        <div class="demo-accounts">
+            <h3><i class="bi bi-info-circle"></i> Demo Hesablar</h3>
+            <div class="demo-grid">
+                <div class="demo-card admin">
+                    <span class="role-badge">Admin</span>
+                    <p><strong>Username:</strong> admin</p>
+                    <p><strong>Password:</strong> admin123</p>
+                </div>
+                <div class="demo-card employee">
+                    <span class="role-badge">İşçi</span>
+                    <p><strong>Username:</strong> murad</p>
+                    <p><strong>Password:</strong> 123456</p>
+                </div>
+                <div class="demo-card employee">
+                    <span class="role-badge">İşçi</span>
+                    <p><strong>Username:</strong> resad</p>
+                    <p><strong>Password:</strong> 123456</p>
+                </div>
+                <div class="demo-card employee">
+                    <span class="role-badge">İşçi</span>
+                    <p><strong>Username:</strong> kamran</p>
+                    <p><strong>Password:</strong> 123456</p>
+                </div>
             </div>
-          </div>
-        </div>
-      </header>
-
-      <!-- KPI CARDS -->
-      <section class="cards">
-        <div class="card">
-          <h3>Ümumi İşçi</h3>
-          <p>128</p>
-        </div>
-        <div class="card">
-          <h3>Aktiv İşçi</h3>
-          <p>114</p>
-        </div>
-        <div class="card">
-          <h3>Bu Gün Gələn</h3>
-          <p>97</p>
-        </div>
-        <div class="card">
-          <h3>Aktiv Obyekt</h3>
-          <p>12</p>
-        </div>
-        <div class="card">
-          <h3>Aylıq Maaş Fondu</h3>
-          <p>48,500 ₼</p>
-        </div>
-        <div class="card">
-          <h3>Bu Ay Cərimə</h3>
-          <p>1,250 ₼</p>
-        </div>
-      </section>
-
-      <!-- CONTENT GRID -->
-      <section class="content-grid">
-
-        <!-- TABLE -->
-        <div class="panel large-panel">
-          <div class="panel-header">
-            <h2>Son əlavə olunan işçilər</h2>
-            <button class="btn">Hamısına bax</button>
-          </div>
-
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Ad Soyad</th>
-                  <th>Telefon</th>
-                  <th>Vəzifə</th>
-                  <th>Obyekt</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Murad Əliyev</td>
-                  <td>055 555 55 55</td>
-                  <td>Usta</td>
-                  <td>Bakı Layihəsi</td>
-                  <td><span class="badge active">Aktiv</span></td>
-                </tr>
-                <tr>
-                  <td>Rəşad Məmmədov</td>
-                  <td>050 444 44 44</td>
-                  <td>Fəhlə</td>
-                  <td>Sumqayıt Obyekti</td>
-                  <td><span class="badge active">Aktiv</span></td>
-                </tr>
-                <tr>
-                  <td>Kamran Həsənov</td>
-                  <td>070 333 33 33</td>
-                  <td>Qaynaqçı</td>
-                  <td>Xırdalan Obyekti</td>
-                  <td><span class="badge passive">Passiv</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
 
-        <!-- RIGHT PANELS -->
-        <div class="side-panels">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Son Tapşırıqlar</h2>
-            </div>
-            <ul class="list">
-              <li>Beton tökmə işinə nəzarət</li>
-              <li>Materialların qəbulu</li>
-              <li>Yeni işçilərin obyektə təyini</li>
-            </ul>
-          </div>
+        <p class="copyright">&copy; 2025 555 İnşaat. Bütün hüquqlar qorunur.</p>
+    </div>
 
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Son Cərimələr</h2>
-            </div>
-            <ul class="list">
-              <li>Elvin - Gecikmə - 10 ₼</li>
-              <li>Tural - İşə gəlməmə - 20 ₼</li>
-              <li>Orxan - Təhlükəsizlik pozuntusu - 15 ₼</li>
-            </ul>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Son Avanslar</h2>
-            </div>
-            <ul class="list">
-              <li>Murad - 150 ₼</li>
-              <li>Rəşad - 100 ₼</li>
-              <li>Samir - 200 ₼</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-    </main>
-  </div>
+    <script src="script.js"></script>
 </body>
 </html>

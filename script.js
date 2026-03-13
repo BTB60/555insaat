@@ -653,11 +653,20 @@ const LeaveManager = {
         
         if (!data.leaves) data.leaves = [];
         
+        // Calculate salary deduction for non-unpaid leaves
+        let salaryDeduction = 0;
+        if (leaveData.type !== 'unpaid' && user.salary) {
+            const dailySalary = user.salary / 30;
+            salaryDeduction = dailySalary * leaveData.days;
+        }
+        
         const newLeave = {
             id: Date.now(),
             employeeId: user.id,
             status: 'pending',
             requestedAt: new Date().toISOString().split('T')[0],
+            salaryDeduction: salaryDeduction,
+            isPaid: leaveData.type !== 'unpaid',
             ...leaveData
         };
         
@@ -665,10 +674,11 @@ const LeaveManager = {
         Storage.setData(data);
         
         // Notify admin
+        const leaveTypeText = leaveData.type === 'unpaid' ? 'pulsuz icazə' : 'icazə';
         NotificationManager.create({
             employeeId: 1, // Admin
-            title: 'Yeni icazə istəyi',
-            message: `${user.fullName} yeni icazə istəyi göndərdi.`,
+            title: `Yeni ${leaveTypeText} istəyi`,
+            message: `${user.fullName} ${leaveData.days} gün ${leaveTypeText} istədi.${salaryDeduction > 0 ? ` (Tutulacaq: ${UI.formatCurrency(salaryDeduction)})` : ''}`,
             type: 'leave'
         });
         
@@ -684,25 +694,53 @@ const LeaveManager = {
             leave.approvedAt = new Date().toISOString().split('T')[0];
             Storage.setData(data);
             
-            // Update employee leave balance
-            const employee = Storage.getUserById(leave.employeeId);
-            if (employee && employee.leaveBalance) {
-                employee.leaveBalance.used += leave.days;
-                employee.leaveBalance.remaining -= leave.days;
-                Storage.updateUser(employee.id, { leaveBalance: employee.leaveBalance });
+            // Update employee leave balance only for paid leaves (not unpaid)
+            if (leave.isPaid) {
+                const employee = Storage.getUserById(leave.employeeId);
+                if (employee && employee.leaveBalance) {
+                    employee.leaveBalance.used += leave.days;
+                    employee.leaveBalance.remaining -= leave.days;
+                    Storage.updateUser(employee.id, { leaveBalance: employee.leaveBalance });
+                }
+                
+                // Add salary deduction to employee's next salary
+                if (leave.salaryDeduction > 0) {
+                    this.addSalaryDeduction(leave.employeeId, leave.salaryDeduction, leave);
+                }
             }
             
             // Notify employee
+            const message = leave.isPaid 
+                ? `İcazə istəyiniz təsdiqləndi. ${UI.formatCurrency(leave.salaryDeduction)} məbləğində tutulacaq.`
+                : 'Pulsuz icazə istəyiniz təsdiqləndi. Maaşdan tutulma olmayacaq.';
+            
             NotificationManager.create({
                 employeeId: leave.employeeId,
                 title: 'İcazə təsdiqləndi',
-                message: 'İcazə istəyiniz təsdiqləndi.',
+                message: message,
                 type: 'leave'
             });
             
             return leave;
         }
         return null;
+    },
+
+    addSalaryDeduction(employeeId, amount, leave) {
+        const data = Storage.getData();
+        if (!data.salaryDeductions) data.salaryDeductions = [];
+        
+        data.salaryDeductions.push({
+            id: Date.now(),
+            employeeId: employeeId,
+            amount: amount,
+            leaveId: leave.id,
+            description: `${UI.formatDate(leave.startDate)} - ${UI.formatDate(leave.endDate)} tarixləri arası icazə (${leave.days} gün)`,
+            status: 'pending',
+            createdAt: new Date().toISOString().split('T')[0]
+        });
+        
+        Storage.setData(data);
     },
 
     reject(leaveId, reason) {
@@ -1227,6 +1265,7 @@ function setupLeaveForm() {
     const startDate = document.getElementById('leave-start');
     const endDate = document.getElementById('leave-end');
     const daysInput = document.getElementById('leave-days');
+    const leaveType = document.getElementById('leave-type');
 
     if (!leaveForm) return;
 
@@ -1249,11 +1288,63 @@ function setupLeaveForm() {
             
             const days = LeaveManager.calculateDays(startDate.value, endDate.value);
             if (daysInput) daysInput.value = days;
+            
+            // Update salary preview
+            updateSalaryPreview();
         }
     }
 
     if (startDate) startDate.addEventListener('change', calculateDays);
     if (endDate) endDate.addEventListener('change', calculateDays);
+    
+    // Update salary preview when leave type changes
+    if (leaveType) {
+        leaveType.addEventListener('change', updateSalaryPreview);
+    }
+    
+    // Function to show salary impact preview
+    function updateSalaryPreview() {
+        const type = leaveType?.value;
+        const days = parseInt(daysInput?.value) || 0;
+        const user = Auth.getCurrentUser();
+        
+        // Remove existing preview
+        const existingPreview = document.getElementById('salary-preview');
+        if (existingPreview) existingPreview.remove();
+        
+        if (!type || !days || !user?.salary) return;
+        
+        const dailySalary = user.salary / 30;
+        const deduction = dailySalary * days;
+        
+        const previewDiv = document.createElement('div');
+        previewDiv.id = 'salary-preview';
+        previewDiv.className = 'form-group';
+        previewDiv.style.marginTop = '16px';
+        
+        if (type === 'unpaid') {
+            previewDiv.innerHTML = `
+                <div class="alert alert-success" style="margin: 0;">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>Pulsuz icazə:</strong> Maaşdan tutulma olmayacaq. İllik balansdan da çıxılmayacaq.
+                </div>
+            `;
+        } else {
+            previewDiv.innerHTML = `
+                <div class="alert alert-warning" style="margin: 0;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Maaş təsiri:</strong> ${UI.formatCurrency(deduction)} tutulacaq 
+                    (Günlük: ${UI.formatCurrency(dailySalary)} × ${days} gün)
+                </div>
+            `;
+        }
+        
+        // Insert before submit button
+        const submitBtn = leaveForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            leaveForm.insertBefore(previewDiv, submitBtn);
+        }
+    }
 
     // Form submit
     leaveForm.addEventListener('submit', function(e) {
@@ -1326,17 +1417,32 @@ function loadLeaveHistory() {
         return;
     }
     
-    tbody.innerHTML = leaves.map(leave => `
-        <tr>
-            <td>${UI.formatDate(leave.requestedAt)}</td>
-            <td>${leave.typeLabel}</td>
-            <td>${UI.formatDate(leave.startDate)}</td>
-            <td>${UI.formatDate(leave.endDate)}</td>
-            <td>${leave.days}</td>
-            <td>${UI.truncate(leave.reason, 30) || '-'}</td>
-            <td>${UI.getStatusBadge(leave.status)}</td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = leaves.map(leave => {
+        // Calculate salary impact
+        let salaryImpact = '';
+        if (leave.type === 'unpaid') {
+            salaryImpact = '<span class="text-success">0 ₼ (Pulsuz)</span>';
+        } else if (leave.salaryDeduction > 0) {
+            salaryImpact = `<span class="text-danger">-${UI.formatCurrency(leave.salaryDeduction)}</span>`;
+        } else if (leave.isPaid && user.salary) {
+            const deduction = (user.salary / 30) * leave.days;
+            salaryImpact = `<span class="text-danger">-${UI.formatCurrency(deduction)}</span>`;
+        } else {
+            salaryImpact = '<span class="text-muted">-</span>';
+        }
+        
+        return `
+            <tr>
+                <td>${UI.formatDate(leave.requestedAt)}</td>
+                <td>${leave.typeLabel}</td>
+                <td>${UI.formatDate(leave.startDate)}</td>
+                <td>${UI.formatDate(leave.endDate)}</td>
+                <td>${leave.days}</td>
+                <td>${salaryImpact}</td>
+                <td>${UI.getStatusBadge(leave.status)}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function updateLeaveBalance() {

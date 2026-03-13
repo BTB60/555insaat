@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -429,7 +429,8 @@
                                 <label>İcazə növü *</label>
                                 <select id="leave-type" class="form-control" required>
                                     <option value="">Seçin</option>
-                                    <option value="annual">İllik məzuniyyət</option>
+                                    <option value="annual">İllik məzuniyyət (Ödənişli)</option>
+                                    <option value="unpaid">Pulsuz icazə (Ödənişsiz)</option>
                                     <option value="sick">Xəstəlik icazəsi</option>
                                     <option value="personal">Şəxsi iş</option>
                                     <option value="family">Ailəvi səbəb</option>
@@ -490,6 +491,8 @@
                                 <p><i class="bi bi-check-circle text-success"></i> İcazə istəkləri 48 saat əvvəldən verilməlidir.</p>
                                 <p><i class="bi bi-check-circle text-success"></i> Xəstəlik icazəsi üçün tibbi arayış tələb olunur.</p>
                                 <p><i class="bi bi-check-circle text-success"></i> İcazə təsdiqləndikdən sonra bildiriş alacaqsınız.</p>
+                                <p><i class="bi bi-exclamation-circle text-warning"></i> <strong>Pulsuz icazə:</strong> Maaşdan tutulmur, illik balansdan da çıxılmır.</p>
+                                <p><i class="bi bi-cash-stack text-info"></i> <strong>Digər icazələr:</strong> Aylıq maaş / 30 × icazə günü = tutulacaq məbləğ</p>
                             </div>
                         </div>
                     </div>
@@ -509,7 +512,7 @@
                                     <th>Başlama</th>
                                     <th>Bitmə</th>
                                     <th>Gün</th>
-                                    <th>Səbəb</th>
+                                    <th>Maaş Təsiri</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -520,7 +523,7 @@
                                     <td>10.03.2025</td>
                                     <td>12.03.2025</td>
                                     <td>3</td>
-                                    <td>Şəxsi işlər</td>
+                                    <td class="text-danger">-120 ₼</td>
                                     <td><span class="badge bg-success">Təsdiqləndi</span></td>
                                 </tr>
                                 <tr>
@@ -529,16 +532,16 @@
                                     <td>16.02.2025</td>
                                     <td>17.02.2025</td>
                                     <td>2</td>
-                                    <td>Qrip</td>
+                                    <td class="text-danger">-80 ₼</td>
                                     <td><span class="badge bg-success">Təsdiqləndi</span></td>
                                 </tr>
                                 <tr>
                                     <td>20.03.2025</td>
-                                    <td>Şəxsi iş</td>
+                                    <td>Pulsuz icazə</td>
                                     <td>25.03.2025</td>
                                     <td>25.03.2025</td>
                                     <td>1</td>
-                                    <td>Ailəvi səbəb</td>
+                                    <td class="text-success">0 ₼ (Pulsuz)</td>
                                     <td><span class="badge bg-warning">Gözləyir</span></td>
                                 </tr>
                             </tbody>

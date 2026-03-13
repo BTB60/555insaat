@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>555 İnşaat - Şəxsi Kabinet</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar employee-sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h3>555 İnşaat</h3>
+                    <small>Şəxsi Kabinet</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="profile">
+                    <i class="bi bi-person"></i> Profil
+                </a>
+                <a href="#" class="nav-item" data-page="attendance">
+                    <i class="bi bi-calendar-check"></i> Davamiyyət
+                </a>
+                <a href="#" class="nav-item" data-page="salary">
+                    <i class="bi bi-cash-stack"></i> Maaş
+                </a>
+                <a href="#" class="nav-item" data-page="advances">
+                    <i class="bi bi-cash"></i> Avanslar
+                </a>
+                <a href="#" class="nav-item" data-page="fines">
+                    <i class="bi bi-exclamation-triangle"></i> Cərimələr
+                </a>
+                <a href="#" class="nav-item" data-page="tasks">
+                    <i class="bi bi-list-task"></i> Tapşırıqlar
+                </a>
+                <a href="#" class="nav-item" data-page="notifications">
+                    <i class="bi bi-bell"></i> Bildirişlər
+                    <span class="badge">2</span>
+                </a>
+                <a href="#" class="nav-item" data-page="documents">
+                    <i class="bi bi-files"></i> Sənədlər
+                </a>
+                <a href="#" class="nav-item" data-page="password">
+                    <i class="bi bi-key"></i> Şifrə dəyiş
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar" id="emp-avatar">E</div>
+                    <div>
+                        <strong id="emp-name">İşçi</strong>
+                        <small>İşçi</small>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="bi bi-box-arrow-right"></i> Çıxış
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 id="page-title">Profil Məlumatları</h1>
+                    <p>Şəxsi kabinetinizə xoş gəlmisiniz</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-icon">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge">2</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Profile Page -->
+            <div id="profile-page" class="page-content active">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <span id="profile-initial">E</span>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profile-name">-</h2>
+                        <p id="profile-position">-</p>
+                        <span class="status-badge active">Aktiv</span>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3><i class="bi bi-person-vcard"></i> Şəxsi Məlumatlar</h3>
+                        </div>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="label">Ad Soyad:</span>
+                                <span class="value" id="info-name">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">İstifadəçi adı:</span>
+                                <span class="value" id="info-username">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Telefon:</span>
+                                <span class="value" id="info-phone">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Vəzifə:</span>
+                                <span class="value" id="info-position">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Şöbə:</span>
+                                <span class="value" id="info-department">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3><i class="bi bi-building"></i> Təyinat Məlumatları</h3>
+                        </div>
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="label">Obyekt:</span>
+                                <span class="value" id="info-project">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Status:</span>
+                                <span class="value"><span class="badge active">Aktiv</span></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Qeydiyyat tarixi:</span>
+                                <span class="value" id="info-joined">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid three">
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bu Ay İş Günü</h3>
+                            <p>22</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aylıq Maaş</h3>
+                            <p>1,200 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-cash"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Cari Avans</h3>
+                            <p>150 ₼</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Page -->
+            <div id="attendance-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-calendar-check"></i> Davamiyyət Tarixçəsi</h2>
+                        <div class="filters">
+                            <select class="form-control">
+                                <option>Yanvar 2025</option>
+                                <option>Fevral 2025</option>
+                                <option>Mart 2025</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="attendance-summary">
+                        <div class="summary-item present">
+                            <span class="count">18</span>
+                            <span class="label">İş günü</span>
+                        </div>
+                        <div class="summary-item late">
+                            <span class="count">2</span>
+                            <span class="label">Gecikmə</span>
+                        </div>
+                        <div class="summary-item absent">
+                            <span class="count">1</span>
+                            <span class="label">İznsiz</span>
+                        </div>
+                        <div class="summary-item excused">
+                            <span class="count">1</span>
+                            <span class="label">İznlə</span>
+                        </div>
+                    </div>
+                    <div class="calendar-view">
+                        <div class="calendar-header">
+                            <button class="btn btn-sm"><i class="bi bi-chevron-left"></i></button>
+                            <h4>Mart 2025</h4>
+                            <button class="btn btn-sm"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-grid">
+                            <div class="day-label">B.e</div>
+                            <div class="day-label">Ç.a</div>
+                            <div class="day-label">Ç</div>
+                            <div class="day-label">C.a</div>
+                            <div class="day-label">C</div>
+                            <div class="day-label">Ş</div>
+                            <div class="day-label">B</div>
+                            <!-- Days will be generated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Page -->
+            <div id="salary-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-cash-stack"></i> Maaş Məlumatları</h2>
+                        <select class="form-control" style="width: auto;">
+                            <option>2025</option>
+                            <option>2024</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Ay</th>
+                                    <th>Baza Maaş</th>
+                                    <th>Bonus</th>
+                                    <th>Əlavə saat</th>
+                                    <th>Avans</th>
+                                    <th>Cərimə</th>
+                                    <th>Yekun</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Mart 2025</td>
+                                    <td>1,200 ₼</td>
+                                    <td>100 ₼</td>
+                                    <td>50 ₼</td>
+                                    <td class="text-danger">-150 ₼</td>
+                                    <td class="text-danger">-20 ₼</td>
+                                    <td><strong>1,180 ₼</strong></td>
+                                    <td><span class="badge bg-warning">Gözləyir</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Fevral 2025</td>
+                                    <td>1,200 ₼</td>
+                                    <td>0 ₼</td>
+                                    <td>30 ₼</td>
+                                    <td class="text-danger">-100 ₼</td>
+                                    <td class="text-danger">0 ₼</td>
+                                    <td><strong>1,130 ₼</strong></td>
+                                    <td><span class="badge bg-success">Ödənilib</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advances Page -->
+            <div id="advances-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-cash"></i> Avans Tarixçəsi</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tarix</th>
+                                    <th>Məbləğ</th>
+                                    <th>Səbəb</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>15.03.2025</td>
+                                    <td>150 ₼</td>
+                                    <td>Şəxsi ehtiyac</td>
+                                    <td><span class="badge bg-success">Təsdiqlənib</span></td>
+                                </tr>
+                                <tr>
+                                    <td>10.02.2025</td>
+                                    <td>100 ₼</td>
+                                    <td>Şəxsi ehtiyac</td>
+                                    <td><span class="badge bg-success">Çıxılıb</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fines Page -->
+            <div id="fines-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-exclamation-triangle"></i> Cərimə Tarixçəsi</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tarix</th>
+                                    <th>Məbləğ</th>
+                                    <th>Səbəb</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>05.03.2025</td>
+                                    <td class="text-danger">20 ₼</td>
+                                    <td>Gecikmə (15 dəq)</td>
+                                    <td><span class="badge bg-warning">Aktiv</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tasks Page -->
+            <div id="tasks-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-list-task"></i> Tapşırıqlar</h2>
+                    </div>
+                    <div class="task-list">
+                        <div class="task-item pending">
+                            <div class="task-status"></div>
+                            <div class="task-content">
+                                <h4>Beton tökmə işinə nəzarət</h4>
+                                <p>Son tarix: 20.03.2025</p>
+                                <span class="priority high">Yüksək</span>
+                            </div>
+                        </div>
+                        <div class="task-item completed">
+                            <div class="task-status"></div>
+                            <div class="task-content">
+                                <h4>Materialların qəbulu</h4>
+                                <p>Son tarix: 15.03.2025</p>
+                                <span class="priority medium">Orta</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Page -->
+            <div id="notifications-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-bell"></i> Bildirişlər</h2>
+                    </div>
+                    <div class="notification-list">
+                        <div class="notification-item unread">
+                            <i class="bi bi-cash text-success"></i>
+                            <div class="notification-content">
+                                <h4>Maaş ödənişi</h4>
+                                <p>Fevral ayı üzrə maaşınız hesabınıza köçürüldü.</p>
+                                <small>10.03.2025</small>
+                            </div>
+                        </div>
+                        <div class="notification-item unread">
+                            <i class="bi bi-exclamation-triangle text-danger"></i>
+                            <div class="notification-content">
+                                <h4>Yeni cərimə</h4>
+                                <p>05.03.2025 tarixində gecikməyə görə 20 ₼ cərimə.</p>
+                                <small>05.03.2025</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Page -->
+            <div id="documents-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-files"></i> Fayllar və Sənədlər</h2>
+                    </div>
+                    <div class="document-grid">
+                        <div class="document-card">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                            <span>Əmək müqaviləsi.pdf</span>
+                        </div>
+                        <div class="document-card">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>İş qaydaları.docx</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Page -->
+            <div id="password-page" class="page-content">
+                <div class="panel" style="max-width: 500px;">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-key"></i> Şifrəni Dəyiş</h2>
+                    </div>
+                    <form id="passwordForm" class="form-vertical">
+                        <div class="form-group">
+                            <label>Cari şifrə</label>
+                            <input type="password" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Yeni şifrə</label>
+                            <input type="password" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Yeni şifrə (təkrar)</label>
+                            <input type="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg"></i> Dəyiş
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

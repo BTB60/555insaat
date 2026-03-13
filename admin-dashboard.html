@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>555 İnşaat - Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h3>555 İnşaat</h3>
+                    <small>Admin Panel</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="#" class="nav-item" data-page="employees">
+                    <i class="bi bi-people"></i> İşçilər
+                </a>
+                <a href="#" class="nav-item" data-page="projects">
+                    <i class="bi bi-building"></i> Obyektlər
+                </a>
+                <a href="#" class="nav-item" data-page="attendance">
+                    <i class="bi bi-calendar-check"></i> Davamiyyət
+                </a>
+                <a href="#" class="nav-item" data-page="salary">
+                    <i class="bi bi-cash-stack"></i> Maaşlar
+                </a>
+                <a href="#" class="nav-item" data-page="advances">
+                    <i class="bi bi-cash"></i> Avanslar
+                </a>
+                <a href="#" class="nav-item" data-page="fines">
+                    <i class="bi bi-exclamation-triangle"></i> Cərimələr
+                </a>
+                <a href="#" class="nav-item" data-page="tasks">
+                    <i class="bi bi-list-task"></i> Tapşırıqlar
+                </a>
+                <a href="#" class="nav-item" data-page="reports">
+                    <i class="bi bi-graph-up"></i> Hesabatlar
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <i class="bi bi-gear"></i> Ayarlar
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">A</div>
+                    <div>
+                        <strong id="admin-name">Admin</strong>
+                        <small>Super Admin</small>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">
+                    <i class="bi bi-box-arrow-right"></i> Çıxış
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1 id="page-title">Dashboard</h1>
+                    <p id="page-subtitle">555 İnşaat idarəetmə panelinə xoş gəlmisiniz</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Axtarış...">
+                    </div>
+                    <button class="btn-icon">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge">3</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi İşçi</h3>
+                            <p id="total-employees">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktiv İşçi</h3>
+                            <p id="active-employees">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bu Gün Gələn</h3>
+                            <p>97</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktiv Obyekt</h3>
+                            <p>12</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon teal">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aylıq Maaş Fondu</h3>
+                            <p>48,500 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bu Ay Cərimə</h3>
+                            <p>1,250 ₼</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="panel large">
+                        <div class="panel-header">
+                            <h2><i class="bi bi-people"></i> Son əlavə olunan işçilər</h2>
+                            <button class="btn btn-primary" onclick="showPage('employees')">
+                                Hamısına bax
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ad Soyad</th>
+                                        <th>Telefon</th>
+                                        <th>Vəzifə</th>
+                                        <th>Obyekt</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-employees">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="side-panels">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h2><i class="bi bi-list-task"></i> Son Tapşırıqlar</h2>
+                            </div>
+                            <ul class="list-group">
+                                <li>Beton tökmə işinə nəzarət</li>
+                                <li>Materialların qəbulu</li>
+                                <li>Yeni işçilərin obyektə təyini</li>
+                            </ul>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h2><i class="bi bi-exclamation-triangle"></i> Son Cərimələr</h2>
+                            </div>
+                            <ul class="list-group">
+                                <li><span class="text-danger">Elvin</span> - Gecikmə - 10 ₼</li>
+                                <li><span class="text-danger">Tural</span> - İşə gəlməmə - 20 ₼</li>
+                                <li><span class="text-danger">Orxan</span> - Təhlükəsizlik - 15 ₼</li>
+                            </ul>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h2><i class="bi bi-cash"></i> Son Avanslar</h2>
+                            </div>
+                            <ul class="list-group">
+                                <li><span class="text-primary">Murad</span> - 150 ₼</li>
+                                <li><span class="text-primary">Rəşad</span> - 100 ₼</li>
+                                <li><span class="text-primary">Samir</span> - 200 ₼</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Employees Page -->
+            <div id="employees-page" class="page-content">
+                <div class="page-actions">
+                    <button class="btn btn-success" onclick="openEmployeeModal()">
+                        <i class="bi bi-plus-lg"></i> Yeni İşçi Əlavə Et
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-people"></i> İşçilər Siyahısı</h2>
+                        <div class="filters">
+                            <input type="text" id="employee-search" class="form-control" placeholder="Axtar...">
+                            <select id="status-filter" class="form-control">
+                                <option value="">Bütün statuslar</option>
+                                <option value="active">Aktiv</option>
+                                <option value="inactive">Passiv</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Şəkil</th>
+                                    <th>Ad Soyad</th>
+                                    <th>İstifadəçi adı</th>
+                                    <th>Telefon</th>
+                                    <th>Vəzifə</th>
+                                    <th>Obyekt</th>
+                                    <th>Status</th>
+                                    <th>Əməliyyatlar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employees-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Pages Placeholder -->
+            <div id="projects-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Obyektlər</h2>
+                    </div>
+                    <p class="text-center py-5">Obyektlər səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+
+            <div id="attendance-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Davamiyyət</h2>
+                    </div>
+                    <p class="text-center py-5">Davamiyyət səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+
+            <div id="salary-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Maaşlar</h2>
+                    </div>
+                    <p class="text-center py-5">Maaşlar səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+
+            <div id="advances-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Avanslar</h2>
+                    </div>
+                    <p class="text-center py-5">Avanslar səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+
+            <div id="fines-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Cərimələr</h2>
+                    </div>
+                    <p class="text-center py-5">Cərimələr səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+
+            <div id="tasks-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Tapşırıqlar</h2>
+                    </div>
+                    <p class="text-center py-5">Tapşırıqlar səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+
+            <div id="reports-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Hesabatlar</h2>
+                    </div>
+                    <p class="text-center py-5">Hesabatlar səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+
+            <div id="settings-page" class="page-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Ayarlar</h2>
+                    </div>
+                    <p class="text-center py-5">Ayarlar səhifəsi hazırlanır...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Employee Modal -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Yeni İşçi Əlavə Et</h3>
+                    <button class="btn-close" onclick="closeEmployeeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="employeeForm">
+                        <input type="hidden" id="employee-id">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Ad Soyad *</label>
+                                <input type="text" id="emp-fullname" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>İstifadəçi adı *</label>
+                                <input type="text" id="emp-username" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Şifrə *</label>
+                                <input type="password" id="emp-password" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Telefon</label>
+                                <input type="tel" id="emp-phone" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Vəzifə</label>
+                                <input type="text" id="emp-position" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Şöbə</label>
+                                <input type="text" id="emp-department" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Obyekt</label>
+                                <select id="emp-project" class="form-control">
+                                    <option value="">Seçin</option>
+                                    <option value="Bakı Layihəsi">Bakı Layihəsi</option>
+                                    <option value="Sumqayıt Obyekti">Sumqayıt Obyekti</option>
+                                    <option value="Xırdalan Obyekti">Xırdalan Obyekti</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="emp-status" class="form-control">
+                                    <option value="active">Aktiv</option>
+                                    <option value="inactive">Passiv</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeEmployeeModal()">Bağla</button>
+                    <button class="btn btn-primary" onclick="saveEmployee()">Yadda saxla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

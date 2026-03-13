@@ -1145,11 +1145,74 @@ body {
     color: var(--gray);
 }
 
+/* Leave Page Styles */
+.leave-balance {
+    padding: 0 24px 24px;
+}
+
+.balance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.balance-item:last-child {
+    border-bottom: none;
+}
+
+.balance-item .label {
+    color: var(--gray);
+    font-size: 14px;
+}
+
+.balance-item .value {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.balance-item .value strong {
+    font-size: 20px;
+}
+
+.info-box p {
+    padding: 10px 0;
+    font-size: 14px;
+    color: var(--dark);
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.info-box p:last-child {
+    border-bottom: none;
+}
+
+.info-box i {
+    margin-right: 8px;
+}
+
+.form-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-vertical .form-group {
+    margin-bottom: 0;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
 /* Utilities */
 .text-center { text-align: center; }
 .text-danger { color: var(--danger); }
 .text-success { color: var(--success); }
 .text-primary { color: var(--secondary); }
+.text-warning { color: var(--warning); }
 .py-5 { padding-top: 3rem; padding-bottom: 3rem; }
 .py-4 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
 

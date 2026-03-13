@@ -45,6 +45,9 @@
                 <a href="#" class="nav-item" data-page="documents">
                     <i class="bi bi-files"></i> Sənədlər
                 </a>
+                <a href="#" class="nav-item" data-page="leaves">
+                    <i class="bi bi-calendar-plus"></i> İcazə İstə
+                </a>
                 <a href="#" class="nav-item" data-page="password">
                     <i class="bi bi-key"></i> Şifrə dəyiş
                 </a>
@@ -409,6 +412,137 @@
                             <i class="bi bi-file-earmark-text"></i>
                             <span>İş qaydaları.docx</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaves Page -->
+            <div id="leaves-page" class="page-content">
+                <div class="content-grid">
+                    <!-- New Leave Request -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2><i class="bi bi-calendar-plus"></i> Yeni İcazə İstəyi</h2>
+                        </div>
+                        <form id="leaveForm" class="form-vertical" style="padding: 0 24px 24px;">
+                            <div class="form-group">
+                                <label>İcazə növü *</label>
+                                <select id="leave-type" class="form-control" required>
+                                    <option value="">Seçin</option>
+                                    <option value="annual">İllik məzuniyyət</option>
+                                    <option value="sick">Xəstəlik icazəsi</option>
+                                    <option value="personal">Şəxsi iş</option>
+                                    <option value="family">Ailəvi səbəb</option>
+                                    <option value="other">Digər</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Başlama tarixi *</label>
+                                    <input type="date" id="leave-start" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Bitmə tarixi *</label>
+                                    <input type="date" id="leave-end" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Gün sayı</label>
+                                <input type="number" id="leave-days" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Səbəb / Əlavə məlumat</label>
+                                <textarea id="leave-reason" class="form-control" rows="3" placeholder="İcazə səbəbini qeyd edin..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> İcazə İstəyi Göndər
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Leave Balance -->
+                    <div class="side-panels">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3><i class="bi bi-calendar-check"></i> İcazə Balansı</h3>
+                            </div>
+                            <div class="leave-balance">
+                                <div class="balance-item">
+                                    <span class="label">İllik məzuniyyət:</span>
+                                    <span class="value"><strong id="annual-balance">21</strong> gün</span>
+                                </div>
+                                <div class="balance-item">
+                                    <span class="label">İstifadə edilib:</span>
+                                    <span class="value text-danger"><strong id="used-leaves">5</strong> gün</span>
+                                </div>
+                                <div class="balance-item">
+                                    <span class="label">Qalıq:</span>
+                                    <span class="value text-success"><strong id="remaining-leaves">16</strong> gün</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3><i class="bi bi-info-circle"></i> Məlumat</h3>
+                            </div>
+                            <div class="info-box" style="padding: 0 24px 24px;">
+                                <p><i class="bi bi-check-circle text-success"></i> İcazə istəkləri 48 saat əvvəldən verilməlidir.</p>
+                                <p><i class="bi bi-check-circle text-success"></i> Xəstəlik icazəsi üçün tibbi arayış tələb olunur.</p>
+                                <p><i class="bi bi-check-circle text-success"></i> İcazə təsdiqləndikdən sonra bildiriş alacaqsınız.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave History -->
+                <div class="panel" style="margin-top: 24px;">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-clock-history"></i> İcazə Tarixçəm</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tarix</th>
+                                    <th>Növ</th>
+                                    <th>Başlama</th>
+                                    <th>Bitmə</th>
+                                    <th>Gün</th>
+                                    <th>Səbəb</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaves-table">
+                                <tr>
+                                    <td>01.03.2025</td>
+                                    <td>İllik məzuniyyət</td>
+                                    <td>10.03.2025</td>
+                                    <td>12.03.2025</td>
+                                    <td>3</td>
+                                    <td>Şəxsi işlər</td>
+                                    <td><span class="badge bg-success">Təsdiqləndi</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15.02.2025</td>
+                                    <td>Xəstəlik icazəsi</td>
+                                    <td>16.02.2025</td>
+                                    <td>17.02.2025</td>
+                                    <td>2</td>
+                                    <td>Qrip</td>
+                                    <td><span class="badge bg-success">Təsdiqləndi</span></td>
+                                </tr>
+                                <tr>
+                                    <td>20.03.2025</td>
+                                    <td>Şəxsi iş</td>
+                                    <td>25.03.2025</td>
+                                    <td>25.03.2025</td>
+                                    <td>1</td>
+                                    <td>Ailəvi səbəb</td>
+                                    <td><span class="badge bg-warning">Gözləyir</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

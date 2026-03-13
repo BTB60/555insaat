@@ -597,6 +597,9 @@ function initEmployeeDashboard() {
 
     // Setup navigation
     setupEmployeeNavigation();
+
+    // Setup leave form
+    setupLeaveForm();
 }
 
 function setupEmployeeNavigation() {
@@ -632,10 +635,105 @@ function showEmployeePage(pageName) {
         tasks: 'Tapşırıqlar',
         notifications: 'Bildirişlər',
         documents: 'Fayllar və Sənədlər',
+        leaves: 'İcazə İstə',
         password: 'Şifrəni Dəyiş'
     };
 
     document.getElementById('page-title').textContent = titles[pageName] || 'Profil';
+}
+
+// ============================================
+// LEAVE MANAGEMENT
+// ============================================
+function setupLeaveForm() {
+    const leaveForm = document.getElementById('leaveForm');
+    const startDate = document.getElementById('leave-start');
+    const endDate = document.getElementById('leave-end');
+    const daysInput = document.getElementById('leave-days');
+
+    if (!leaveForm) return;
+
+    // Calculate days when dates change
+    function calculateDays() {
+        if (startDate.value && endDate.value) {
+            const start = new Date(startDate.value);
+            const end = new Date(endDate.value);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            daysInput.value = diffDays > 0 ? diffDays : 0;
+        }
+    }
+
+    if (startDate) startDate.addEventListener('change', calculateDays);
+    if (endDate) endDate.addEventListener('change', calculateDays);
+
+    // Form submit
+    leaveForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const leaveData = {
+            type: document.getElementById('leave-type').value,
+            typeLabel: document.getElementById('leave-type').options[document.getElementById('leave-type').selectedIndex].text,
+            startDate: startDate.value,
+            endDate: endDate.value,
+            days: daysInput.value,
+            reason: document.getElementById('leave-reason').value,
+            status: 'pending',
+            requestedAt: new Date().toISOString().split('T')[0]
+        };
+
+        if (!leaveData.type || !leaveData.startDate || !leaveData.endDate) {
+            alert('Zəhmət olmasa bütün vacib sahələri doldurun!');
+            return;
+        }
+
+        // Save to localStorage
+        const data = Storage.getData();
+        const user = Auth.getCurrentUser();
+        
+        if (!data.leaves) data.leaves = [];
+        
+        data.leaves.push({
+            id: Date.now(),
+            employeeId: user.id,
+            ...leaveData
+        });
+        
+        Storage.setData(data);
+        
+        // Add to table
+        addLeaveToTable(leaveData);
+        
+        // Reset form
+        leaveForm.reset();
+        daysInput.value = '';
+        
+        alert('İcazə istəyi uğurla göndərildi!');
+    });
+}
+
+function addLeaveToTable(leave) {
+    const tbody = document.getElementById('leaves-table');
+    if (!tbody) return;
+
+    const statusBadges = {
+        pending: '<span class="badge bg-warning">Gözləyir</span>',
+        approved: '<span class="badge bg-success">Təsdiqləndi</span>',
+        rejected: '<span class="badge bg-danger">Rədd edildi</span>'
+    };
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${leave.requestedAt}</td>
+        <td>${leave.typeLabel}</td>
+        <td>${leave.startDate}</td>
+        <td>${leave.endDate}</td>
+        <td>${leave.days}</td>
+        <td>${leave.reason || '-'}</td>
+        <td>${statusBadges[leave.status] || statusBadges.pending}</td>
+    `;
+    
+    tbody.insertBefore(row, tbody.firstChild);
 }
 
 // ============================================

@@ -1,6 +1,7 @@
 /**
  * 555 İNŞAAT - İŞÇİ İDARƏETMƏ SİSTEMİ
- * Main JavaScript File
+ * Complete JavaScript Application
+ * Version 2.0
  */
 
 // ============================================
@@ -19,7 +20,8 @@ const INITIAL_DATA = {
             department: 'İdarəetmə',
             project: null,
             status: 'active',
-            createdAt: '2025-01-01'
+            createdAt: '2025-01-01',
+            avatar: null
         },
         {
             id: 2,
@@ -32,7 +34,14 @@ const INITIAL_DATA = {
             department: 'İnşaat',
             project: 'Bakı Layihəsi',
             status: 'active',
-            createdAt: '2025-02-15'
+            createdAt: '2025-02-15',
+            avatar: null,
+            salary: 1200,
+            leaveBalance: {
+                annual: 21,
+                used: 5,
+                remaining: 16
+            }
         },
         {
             id: 3,
@@ -45,7 +54,14 @@ const INITIAL_DATA = {
             department: 'İnşaat',
             project: 'Sumqayıt Obyekti',
             status: 'active',
-            createdAt: '2025-02-20'
+            createdAt: '2025-02-20',
+            avatar: null,
+            salary: 1000,
+            leaveBalance: {
+                annual: 21,
+                used: 3,
+                remaining: 18
+            }
         },
         {
             id: 4,
@@ -58,31 +74,69 @@ const INITIAL_DATA = {
             department: 'Texniki',
             project: 'Xırdalan Obyekti',
             status: 'inactive',
-            createdAt: '2025-03-01'
+            createdAt: '2025-03-01',
+            avatar: null,
+            salary: 1100,
+            leaveBalance: {
+                annual: 21,
+                used: 0,
+                remaining: 21
+            }
         }
     ],
     projects: [
-        { id: 1, name: 'Bakı Layihəsi', location: 'Bakı', status: 'active' },
-        { id: 2, name: 'Sumqayıt Obyekti', location: 'Sumqayıt', status: 'active' },
-        { id: 3, name: 'Xırdalan Obyekti', location: 'Xırdalan', status: 'active' }
+        { id: 1, name: 'Bakı Layihəsi', location: 'Bakı', status: 'active', startDate: '2024-01-01', endDate: null },
+        { id: 2, name: 'Sumqayıt Obyekti', location: 'Sumqayıt', status: 'active', startDate: '2024-03-15', endDate: null },
+        { id: 3, name: 'Xırdalan Obyekti', location: 'Xırdalan', status: 'active', startDate: '2024-06-01', endDate: null }
     ],
-    attendance: [],
-    salaries: [],
+    attendance: [
+        { id: 1, employeeId: 2, date: '2025-03-01', status: 'present', checkIn: '08:00', checkOut: '17:00', notes: '' },
+        { id: 2, employeeId: 2, date: '2025-03-02', status: 'present', checkIn: '08:05', checkOut: '17:00', notes: '' },
+        { id: 3, employeeId: 2, date: '2025-03-03', status: 'late', checkIn: '09:15', checkOut: '17:00', notes: 'Gecikmə' },
+        { id: 4, employeeId: 2, date: '2025-03-04', status: 'present', checkIn: '08:00', checkOut: '17:00', notes: '' },
+        { id: 5, employeeId: 2, date: '2025-03-05', status: 'absent', checkIn: null, checkOut: null, notes: 'İznsiz' }
+    ],
+    salaries: [
+        { id: 1, employeeId: 2, month: '2025-02', baseSalary: 1200, bonus: 0, overtime: 30, advance: 100, fine: 0, netSalary: 1130, status: 'paid', paidDate: '2025-03-05' },
+        { id: 2, employeeId: 2, month: '2025-03', baseSalary: 1200, bonus: 100, overtime: 50, advance: 150, fine: 20, netSalary: 1180, status: 'pending', paidDate: null }
+    ],
     advances: [
-        { id: 1, employeeId: 2, amount: 150, date: '2025-03-15', reason: 'Şəxsi ehtiyac', status: 'approved' },
-        { id: 2, employeeId: 3, amount: 100, date: '2025-02-10', reason: 'Şəxsi ehtiyac', status: 'deducted' }
+        { id: 1, employeeId: 2, amount: 150, date: '2025-03-15', reason: 'Şəxsi ehtiyac', status: 'approved', approvedBy: 1, approvedDate: '2025-03-15' },
+        { id: 2, employeeId: 2, amount: 100, date: '2025-02-10', reason: 'Şəxsi ehtiyac', status: 'deducted', approvedBy: 1, approvedDate: '2025-02-10' },
+        { id: 3, employeeId: 3, amount: 200, date: '2025-03-10', reason: 'Tibbi xərclər', status: 'pending', approvedBy: null, approvedDate: null }
     ],
     fines: [
-        { id: 1, employeeId: 2, amount: 20, date: '2025-03-05', reason: 'Gecikmə (15 dəq)', status: 'active' }
+        { id: 1, employeeId: 2, amount: 20, date: '2025-03-05', reason: 'Gecikmə (15 dəq)', status: 'active', projectId: null },
+        { id: 2, employeeId: 2, amount: 50, date: '2025-02-20', reason: 'Təhlükəsizlik pozuntusu', status: 'deducted', projectId: 1 }
     ],
     tasks: [
-        { id: 1, employeeId: 2, title: 'Beton tökmə işinə nəzarət', dueDate: '2025-03-20', priority: 'high', status: 'pending' },
-        { id: 2, employeeId: 2, title: 'Materialların qəbulu', dueDate: '2025-03-15', priority: 'medium', status: 'completed' }
+        { id: 1, employeeId: 2, title: 'Beton tökmə işinə nəzarət', description: '3-cü blok beton tökmə işlərinin nəzarəti', dueDate: '2025-03-20', priority: 'high', status: 'pending', projectId: 1, createdBy: 1, createdAt: '2025-03-10' },
+        { id: 2, employeeId: 2, title: 'Materialların qəbulu', description: 'Sifariş edilmiş materialların qəbulu və yoxlanışı', dueDate: '2025-03-15', priority: 'medium', status: 'completed', projectId: 1, createdBy: 1, createdAt: '2025-03-08' },
+        { id: 3, employeeId: 3, title: 'Demir konstruksiya quraşdırma', description: '2-ci mərtəbə demir konstruksiya işləri', dueDate: '2025-03-25', priority: 'high', status: 'pending', projectId: 2, createdBy: 1, createdAt: '2025-03-12' }
+    ],
+    leaves: [
+        { id: 1, employeeId: 2, type: 'annual', typeLabel: 'İllik məzuniyyət', startDate: '2025-03-10', endDate: '2025-03-12', days: 3, reason: 'Şəxsi işlər', status: 'approved', requestedAt: '2025-03-01', approvedBy: 1, approvedAt: '2025-03-02' },
+        { id: 2, employeeId: 2, type: 'sick', typeLabel: 'Xəstəlik icazəsi', startDate: '2025-02-16', endDate: '2025-02-17', days: 2, reason: 'Qrip', status: 'approved', requestedAt: '2025-02-15', approvedBy: 1, approvedAt: '2025-02-15' },
+        { id: 3, employeeId: 2, type: 'personal', typeLabel: 'Şəxsi iş', startDate: '2025-03-25', endDate: '2025-03-25', days: 1, reason: 'Ailəvi səbəb', status: 'pending', requestedAt: '2025-03-20', approvedBy: null, approvedAt: null }
     ],
     notifications: [
-        { id: 1, employeeId: 2, title: 'Maaş ödənişi', message: 'Fevral ayı üzrə maaşınız hesabınıza köçürüldü.', date: '2025-03-10', read: false },
-        { id: 2, employeeId: 2, title: 'Yeni cərimə', message: '05.03.2025 tarixində gecikməyə görə 20 ₼ cərimə.', date: '2025-03-05', read: false }
-    ]
+        { id: 1, employeeId: 2, title: 'Maaş ödənişi', message: 'Fevral ayı üzrə maaşınız hesabınıza köçürüldü.', type: 'salary', date: '2025-03-10', read: false },
+        { id: 2, employeeId: 2, title: 'Yeni cərimə', message: '05.03.2025 tarixində gecikməyə görə 20 ₼ cərimə.', type: 'fine', date: '2025-03-05', read: false },
+        { id: 3, employeeId: 2, title: 'Yeni tapşırıq', message: 'Yeni tapşırıq əlavə edildi: Beton tökmə işinə nəzarət', type: 'task', date: '2025-03-10', read: true }
+    ],
+    documents: [
+        { id: 1, employeeId: 2, name: 'Əmək müqaviləsi.pdf', type: 'pdf', size: '2.5 MB', uploadedAt: '2025-02-15', url: '#' },
+        { id: 2, employeeId: 2, name: 'İş qaydaları.docx', type: 'docx', size: '1.2 MB', uploadedAt: '2025-02-15', url: '#' },
+        { id: 3, employeeId: 2, name: 'Təhlükəsizlik təlimatı.pdf', type: 'pdf', size: '3.8 MB', uploadedAt: '2025-03-01', url: '#' }
+    ],
+    settings: {
+        companyName: '555 İnşaat',
+        companyLogo: null,
+        workingHours: { start: '08:00', end: '17:00' },
+        workingDays: [1, 2, 3, 4, 5],
+        currency: 'AZN',
+        language: 'az'
+    }
 };
 
 // ============================================
@@ -116,22 +170,75 @@ const Storage = {
 
     clearSession() {
         localStorage.setItem('555insaat_session', JSON.stringify(null));
+    },
+
+    // Helper methods
+    getUserById(id) {
+        const data = this.getData();
+        return data.users.find(u => u.id === parseInt(id));
+    },
+
+    getCurrentUserData() {
+        const session = this.getSession();
+        if (!session) return null;
+        return this.getUserById(session.id);
+    },
+
+    updateUser(userId, updates) {
+        const data = this.getData();
+        const index = data.users.findIndex(u => u.id === parseInt(userId));
+        if (index !== -1) {
+            data.users[index] = { ...data.users[index], ...updates };
+            this.setData(data);
+            return data.users[index];
+        }
+        return null;
     }
 };
 
 // ============================================
-// AUTHENTICATION
+// AUTHENTICATION SYSTEM
 // ============================================
 const Auth = {
     login(username, password) {
         const data = Storage.getData();
-        const user = data.users.find(u => u.username === username && u.password === password);
+        const user = data.users.find(u => 
+            u.username.toLowerCase() === username.toLowerCase() && 
+            u.password === password &&
+            u.status === 'active'
+        );
         
         if (user) {
-            Storage.setSession(user);
-            return { success: true, user };
+            // Update last login
+            const updatedUser = { ...user, lastLogin: new Date().toISOString() };
+            Storage.updateUser(user.id, updatedUser);
+            Storage.setSession(updatedUser);
+            
+            return { 
+                success: true, 
+                user: updatedUser,
+                message: 'Uğurla daxil oldunuz!'
+            };
         }
-        return { success: false, message: 'İstifadəçi adı və ya şifrə yanlışdır!' };
+        
+        // Check if user exists but inactive
+        const inactiveUser = data.users.find(u => 
+            u.username.toLowerCase() === username.toLowerCase() && 
+            u.password === password &&
+            u.status === 'inactive'
+        );
+        
+        if (inactiveUser) {
+            return { 
+                success: false, 
+                message: 'Hesabınız deaktiv edilib. Admin ilə əlaqə saxlayın.' 
+            };
+        }
+        
+        return { 
+            success: false, 
+            message: 'İstifadəçi adı və ya şifrə yanlışdır!' 
+        };
     },
 
     logout() {
@@ -139,12 +246,18 @@ const Auth = {
         window.location.href = 'login.html';
     },
 
-    checkAuth() {
+    checkAuth(requiredRole = null) {
         const session = Storage.getSession();
         if (!session) {
             window.location.href = 'login.html';
             return null;
         }
+        
+        if (requiredRole && session.role !== requiredRole) {
+            window.location.href = session.role === 'admin' ? 'admin-dashboard.html' : 'employee-dashboard.html';
+            return null;
+        }
+        
         return session;
     },
 
@@ -152,29 +265,226 @@ const Auth = {
         return Storage.getSession();
     },
 
-    updateCurrentUser(userData) {
-        const data = Storage.getData();
-        const index = data.users.findIndex(u => u.id === userData.id);
-        if (index !== -1) {
-            data.users[index] = { ...data.users[index], ...userData };
-            Storage.setData(data);
-            Storage.setSession(data.users[index]);
+    isAdmin() {
+        const user = this.getCurrentUser();
+        return user && user.role === 'admin';
+    },
+
+    isEmployee() {
+        const user = this.getCurrentUser();
+        return user && user.role === 'employee';
+    },
+
+    changePassword(currentPassword, newPassword) {
+        const user = this.getCurrentUser();
+        if (!user) return { success: false, message: 'İstifadəçi tapılmadı!' };
+        
+        if (user.password !== currentPassword) {
+            return { success: false, message: 'Cari şifrə yanlışdır!' };
+        }
+        
+        Storage.updateUser(user.id, { password: newPassword });
+        return { success: true, message: 'Şifrə uğurla dəyişdirildi!' };
+    }
+};
+
+// ============================================
+// UI HELPERS & UTILITIES
+// ============================================
+const UI = {
+    // Notifications
+    showNotification(message, type = 'info', duration = 3000) {
+        // Remove existing notifications
+        const existing = document.querySelector('.ui-notification');
+        if (existing) existing.remove();
+
+        const notification = document.createElement('div');
+        notification.className = `ui-notification alert alert-${type}`;
+        notification.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : type === 'warning' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            animation: slideInRight 0.3s ease;
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideInRight 0.3s ease reverse';
+            setTimeout(() => notification.remove(), 300);
+        }, duration);
+    },
+
+    showError(message) {
+        const errorDiv = document.getElementById('error-message');
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('d-none');
+            errorDiv.classList.add('animate-shake');
+            setTimeout(() => {
+                errorDiv.classList.add('d-none');
+                errorDiv.classList.remove('animate-shake');
+            }, 5000);
+        } else {
+            this.showNotification(message, 'danger');
+        }
+    },
+
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    },
+
+    // Formatting
+    formatDate(dateString, format = 'DD.MM.YYYY') {
+        if (!dateString) return '-';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '-';
+
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+
+        switch (format) {
+            case 'DD.MM.YYYY': return `${day}.${month}.${year}`;
+            case 'YYYY-MM-DD': return `${year}-${month}-${day}`;
+            case 'MMMM YYYY': return date.toLocaleDateString('az-AZ', { month: 'long', year: 'numeric' });
+            default: return `${day}.${month}.${year}`;
+        }
+    },
+
+    formatCurrency(amount, currency = 'AZN') {
+        if (amount === null || amount === undefined) return '-';
+        return new Intl.NumberFormat('az-AZ', {
+            style: 'decimal',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(amount) + ' ' + currency;
+    },
+
+    formatPhone(phone) {
+        if (!phone) return '-';
+        return phone.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+    },
+
+    // Text helpers
+    getInitials(name) {
+        if (!name) return '?';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    },
+
+    capitalize(str) {
+        if (!str) return '';
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    },
+
+    truncate(str, length = 50) {
+        if (!str || str.length <= length) return str;
+        return str.slice(0, length) + '...';
+    },
+
+    // Avatar generator
+    generateAvatar(name, size = 44) {
+        const colors = ['#ff8c42', '#1e3a5f', '#10b981', '#ef4444', '#8b5cf6', '#14b8a6'];
+        const color = colors[name.length % colors.length];
+        const initials = this.getInitials(name);
+        
+        return `<div class="avatar" style="background: ${color}; width: ${size}px; height: ${size}px; font-size: ${size * 0.4}px;">${initials}</div>`;
+    },
+
+    // Status helpers
+    getStatusBadge(status, type = 'default') {
+        const badges = {
+            active: '<span class="badge active"><span></span>Aktiv</span>',
+            inactive: '<span class="badge inactive"><span></span>Passiv</span>',
+            pending: '<span class="badge bg-warning"><span></span>Gözləyir</span>',
+            approved: '<span class="badge bg-success"><span></span>Təsdiqləndi</span>',
+            rejected: '<span class="badge bg-danger"><span></span>Rədd edildi</span>',
+            paid: '<span class="badge bg-success"><span></span>Ödənilib</span>',
+            deducted: '<span class="badge bg-success"><span></span>Çıxılıb</span>',
+            present: '<span class="badge bg-success"><span></span>İşdə</span>',
+            absent: '<span class="badge bg-danger"><span></span>İznsiz</span>',
+            late: '<span class="badge bg-warning"><span></span>Gecikmə</span>',
+            excused: '<span class="badge bg-info"><span></span>İznlə</span>',
+            vacation: '<span class="badge bg-info"><span></span>Məzuniyyət</span>'
+        };
+        return badges[status] || `<span class="badge bg-secondary">${status}</span>`;
+    },
+
+    // Loading states
+    showLoading(element, text = 'Yüklənir...') {
+        element.dataset.originalContent = element.innerHTML;
+        element.innerHTML = `<span class="loading"></span> ${text}`;
+        element.disabled = true;
+    },
+
+    hideLoading(element) {
+        if (element.dataset.originalContent) {
+            element.innerHTML = element.dataset.originalContent;
+            element.disabled = false;
+        }
+    },
+
+    // Modal helpers
+    openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    },
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    },
+
+    // Confirm dialog
+    confirm(message, onConfirm, onCancel = null) {
+        if (confirm(message)) {
+            onConfirm();
+        } else if (onCancel) {
+            onCancel();
         }
     }
 };
 
 // ============================================
-// EMPLOYEE MANAGEMENT (Admin)
+// EMPLOYEE MANAGER (Admin functions)
 // ============================================
 const EmployeeManager = {
-    getAll() {
+    getAll(filters = {}) {
         const data = Storage.getData();
-        return data.users.filter(u => u.role === 'employee');
+        let employees = data.users.filter(u => u.role === 'employee');
+        
+        if (filters.status) {
+            employees = employees.filter(e => e.status === filters.status);
+        }
+        if (filters.project) {
+            employees = employees.filter(e => e.project === filters.project);
+        }
+        if (filters.search) {
+            const search = filters.search.toLowerCase();
+            employees = employees.filter(e => 
+                e.fullName.toLowerCase().includes(search) ||
+                e.username.toLowerCase().includes(search) ||
+                (e.phone && e.phone.includes(search)) ||
+                (e.position && e.position.toLowerCase().includes(search))
+            );
+        }
+        
+        return employees.sort((a, b) => b.id - a.id);
     },
 
     getById(id) {
-        const data = Storage.getData();
-        return data.users.find(u => u.id === parseInt(id));
+        return Storage.getUserById(id);
     },
 
     create(employeeData) {
@@ -186,74 +496,247 @@ const EmployeeManager = {
             role: 'employee',
             status: 'active',
             createdAt: new Date().toISOString().split('T')[0],
+            avatar: null,
+            leaveBalance: { annual: 21, used: 0, remaining: 21 },
             ...employeeData
         };
         
         data.users.push(newEmployee);
         Storage.setData(data);
+        
+        // Create notification for new employee
+        NotificationManager.create({
+            employeeId: newEmployee.id,
+            title: 'Xoş gəlmisiniz!',
+            message: '555 İnşaat sistemində hesabınız yaradıldı.',
+            type: 'system'
+        });
+        
         return newEmployee;
     },
 
     update(id, employeeData) {
-        const data = Storage.getData();
-        const index = data.users.findIndex(u => u.id === parseInt(id));
-        
-        if (index !== -1) {
-            data.users[index] = { ...data.users[index], ...employeeData };
-            Storage.setData(data);
-            return data.users[index];
+        const employee = Storage.updateUser(id, employeeData);
+        if (employee) {
+            UI.showSuccess('İşçi məlumatları yeniləndi!');
         }
-        return null;
+        return employee;
     },
 
     delete(id) {
-        const data = Storage.getData();
-        data.users = data.users.filter(u => u.id !== parseInt(id));
-        Storage.setData(data);
+        UI.confirm('Bu işçini silmək istədiyinizə əminsiniz?', () => {
+            const data = Storage.getData();
+            data.users = data.users.filter(u => u.id !== parseInt(id));
+            Storage.setData(data);
+            UI.showSuccess('İşçi silindi!');
+            return true;
+        });
+        return false;
     },
 
     toggleStatus(id) {
         const employee = this.getById(id);
         if (employee) {
             const newStatus = employee.status === 'active' ? 'inactive' : 'active';
-            return this.update(id, { status: newStatus });
+            this.update(id, { status: newStatus });
+            return newStatus;
         }
         return null;
+    },
+
+    assignToProject(employeeId, projectId) {
+        const data = Storage.getData();
+        const project = data.projects.find(p => p.id === parseInt(projectId));
+        if (project) {
+            this.update(employeeId, { project: project.name });
+            return true;
+        }
+        return false;
+    },
+
+    getStats() {
+        const employees = this.getAll();
+        return {
+            total: employees.length,
+            active: employees.filter(e => e.status === 'active').length,
+            inactive: employees.filter(e => e.status === 'inactive').length,
+            byProject: this.groupByProject(employees)
+        };
+    },
+
+    groupByProject(employees) {
+        return employees.reduce((acc, emp) => {
+            const project = emp.project || 'Təyin edilməyib';
+            acc[project] = (acc[project] || 0) + 1;
+            return acc;
+        }, {});
     }
 };
 
 // ============================================
-// UI HELPERS
+// NOTIFICATION MANAGER
 // ============================================
-const UI = {
-    showError(message) {
-        const errorDiv = document.getElementById('error-message');
-        if (errorDiv) {
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('d-none');
-            setTimeout(() => errorDiv.classList.add('d-none'), 5000);
+const NotificationManager = {
+    getForEmployee(employeeId, unreadOnly = false) {
+        const data = Storage.getData();
+        let notifications = data.notifications.filter(n => n.employeeId === parseInt(employeeId));
+        if (unreadOnly) {
+            notifications = notifications.filter(n => !n.read);
+        }
+        return notifications.sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
+
+    create(notificationData) {
+        const data = Storage.getData();
+        const newNotification = {
+            id: Date.now(),
+            date: new Date().toISOString().split('T')[0],
+            read: false,
+            ...notificationData
+        };
+        
+        if (!data.notifications) data.notifications = [];
+        data.notifications.push(newNotification);
+        Storage.setData(data);
+        return newNotification;
+    },
+
+    markAsRead(notificationId) {
+        const data = Storage.getData();
+        const notification = data.notifications.find(n => n.id === parseInt(notificationId));
+        if (notification) {
+            notification.read = true;
+            Storage.setData(data);
         }
     },
 
-    formatDate(dateString) {
-        if (!dateString) return '-';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('az-AZ');
+    markAllAsRead(employeeId) {
+        const data = Storage.getData();
+        data.notifications.forEach(n => {
+            if (n.employeeId === parseInt(employeeId)) {
+                n.read = true;
+            }
+        });
+        Storage.setData(data);
     },
 
-    getInitials(name) {
-        return name ? name.charAt(0).toUpperCase() : 'E';
-    },
-
-    generateAvatar(name) {
-        const colors = ['#ff8c42', '#1e3a5f', '#2a9d8f', '#e63946', '#457b9d'];
-        const color = colors[name.length % colors.length];
-        return `<div class="avatar" style="background: ${color}">${this.getInitials(name)}</div>`;
+    getUnreadCount(employeeId) {
+        return this.getForEmployee(employeeId, true).length;
     }
 };
 
 // ============================================
-// LOGIN PAGE FUNCTIONS
+// LEAVE MANAGER
+// ============================================
+const LeaveManager = {
+    getForEmployee(employeeId) {
+        const data = Storage.getData();
+        if (!data.leaves) data.leaves = [];
+        return data.leaves
+            .filter(l => l.employeeId === parseInt(employeeId))
+            .sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+    },
+
+    getAll(status = null) {
+        const data = Storage.getData();
+        if (!data.leaves) data.leaves = [];
+        let leaves = data.leaves;
+        if (status) {
+            leaves = leaves.filter(l => l.status === status);
+        }
+        return leaves.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+    },
+
+    create(leaveData) {
+        const data = Storage.getData();
+        const user = Auth.getCurrentUser();
+        
+        if (!data.leaves) data.leaves = [];
+        
+        const newLeave = {
+            id: Date.now(),
+            employeeId: user.id,
+            status: 'pending',
+            requestedAt: new Date().toISOString().split('T')[0],
+            ...leaveData
+        };
+        
+        data.leaves.push(newLeave);
+        Storage.setData(data);
+        
+        // Notify admin
+        NotificationManager.create({
+            employeeId: 1, // Admin
+            title: 'Yeni icazə istəyi',
+            message: `${user.fullName} yeni icazə istəyi göndərdi.`,
+            type: 'leave'
+        });
+        
+        return newLeave;
+    },
+
+    approve(leaveId, approvedBy) {
+        const data = Storage.getData();
+        const leave = data.leaves.find(l => l.id === parseInt(leaveId));
+        if (leave) {
+            leave.status = 'approved';
+            leave.approvedBy = approvedBy;
+            leave.approvedAt = new Date().toISOString().split('T')[0];
+            Storage.setData(data);
+            
+            // Update employee leave balance
+            const employee = Storage.getUserById(leave.employeeId);
+            if (employee && employee.leaveBalance) {
+                employee.leaveBalance.used += leave.days;
+                employee.leaveBalance.remaining -= leave.days;
+                Storage.updateUser(employee.id, { leaveBalance: employee.leaveBalance });
+            }
+            
+            // Notify employee
+            NotificationManager.create({
+                employeeId: leave.employeeId,
+                title: 'İcazə təsdiqləndi',
+                message: 'İcazə istəyiniz təsdiqləndi.',
+                type: 'leave'
+            });
+            
+            return leave;
+        }
+        return null;
+    },
+
+    reject(leaveId, reason) {
+        const data = Storage.getData();
+        const leave = data.leaves.find(l => l.id === parseInt(leaveId));
+        if (leave) {
+            leave.status = 'rejected';
+            leave.rejectionReason = reason;
+            leave.rejectedAt = new Date().toISOString().split('T')[0];
+            Storage.setData(data);
+            
+            // Notify employee
+            NotificationManager.create({
+                employeeId: leave.employeeId,
+                title: 'İcazə rədd edildi',
+                message: `İcazə istəyiniz rədd edildi. Səbəb: ${reason}`,
+                type: 'leave'
+            });
+            
+            return leave;
+        }
+        return null;
+    },
+
+    calculateDays(startDate, endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    }
+};
+
+// ============================================
+// LOGIN PAGE INITIALIZATION
 // ============================================
 function initLoginPage() {
     const loginForm = document.getElementById('loginForm');
@@ -262,32 +745,49 @@ function initLoginPage() {
     // Check if already logged in
     const session = Storage.getSession();
     if (session) {
-        if (session.role === 'admin') {
-            window.location.href = 'admin-dashboard.html';
-        } else {
-            window.location.href = 'employee-dashboard.html';
-        }
+        redirectBasedOnRole(session.role);
         return;
     }
 
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        
+        UI.showLoading(submitBtn, 'Daxil olunur...');
+        
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         const result = Auth.login(username, password);
         
+        UI.hideLoading(submitBtn);
+        
         if (result.success) {
-            if (result.user.role === 'admin') {
-                window.location.href = 'admin-dashboard.html';
-            } else {
-                window.location.href = 'employee-dashboard.html';
-            }
+            UI.showSuccess(result.message);
+            setTimeout(() => redirectBasedOnRole(result.user.role), 500);
         } else {
             UI.showError(result.message);
         }
     });
+
+    // Add enter key support for demo accounts
+    document.querySelectorAll('.demo-card').forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+            const username = card.querySelector('p:first-of-type').textContent.split(':')[1].trim();
+            const password = card.querySelector('p:last-of-type').textContent.split(':')[1].trim();
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+            loginForm.dispatchEvent(new Event('submit'));
+        });
+    });
+}
+
+function redirectBasedOnRole(role) {
+    window.location.href = role === 'admin' ? 'admin-dashboard.html' : 'employee-dashboard.html';
 }
 
 function togglePassword() {
@@ -306,28 +806,28 @@ function togglePassword() {
 }
 
 // ============================================
-// ADMIN DASHBOARD FUNCTIONS
+// ADMIN DASHBOARD INITIALIZATION
 // ============================================
 function initAdminDashboard() {
-    const user = Auth.checkAuth();
-    if (!user || user.role !== 'admin') {
-        window.location.href = 'login.html';
-        return;
-    }
+    const user = Auth.checkAuth('admin');
+    if (!user) return;
 
-    // Update admin info
-    document.getElementById('admin-name').textContent = user.fullName;
-
+    // Update UI
+    updateAdminUI(user);
+    
     // Setup navigation
     setupNavigation();
+    
+    // Load initial data
+    loadDashboardData();
+    
+    // Setup event listeners
+    setupAdminEventListeners();
+}
 
-    // Load dashboard data
-    loadDashboardStats();
-    loadRecentEmployees();
-    loadEmployeesTable();
-
-    // Setup filters
-    setupFilters();
+function updateAdminUI(user) {
+    const adminNameEl = document.getElementById('admin-name');
+    if (adminNameEl) adminNameEl.textContent = user.fullName;
 }
 
 function setupNavigation() {
@@ -338,7 +838,6 @@ function setupNavigation() {
             const page = this.dataset.page;
             showPage(page);
             
-            // Update active nav
             navItems.forEach(nav => nav.classList.remove('active'));
             this.classList.add('active');
         });
@@ -346,18 +845,29 @@ function setupNavigation() {
 }
 
 function showPage(pageName) {
-    // Hide all pages
     document.querySelectorAll('.page-content').forEach(page => {
         page.classList.remove('active');
     });
 
-    // Show selected page
     const selectedPage = document.getElementById(pageName + '-page');
     if (selectedPage) {
         selectedPage.classList.add('active');
     }
 
-    // Update page title
+    updatePageTitle(pageName);
+    
+    // Load page-specific data
+    switch(pageName) {
+        case 'dashboard':
+            loadDashboardData();
+            break;
+        case 'employees':
+            loadEmployeesTable();
+            break;
+    }
+}
+
+function updatePageTitle(pageName) {
     const titles = {
         dashboard: { title: 'Dashboard', subtitle: '555 İnşaat idarəetmə panelinə xoş gəlmisiniz' },
         employees: { title: 'İşçilər', subtitle: 'Bütün işçilərin idarə edilməsi' },
@@ -367,38 +877,51 @@ function showPage(pageName) {
         advances: { title: 'Avanslar', subtitle: 'Avansların idarə edilməsi' },
         fines: { title: 'Cərimələr', subtitle: 'Cərimələrin idarə edilməsi' },
         tasks: { title: 'Tapşırıqlar', subtitle: 'Tapşırıqların idarə edilməsi' },
+        leaves: { title: 'İcazələr', subtitle: 'İcazə istəklərinin idarə edilməsi' },
         reports: { title: 'Hesabatlar', subtitle: 'Müxtəlif hesabatlar' },
         settings: { title: 'Ayarlar', subtitle: 'Sistem ayarları' }
     };
 
     const titleInfo = titles[pageName] || titles.dashboard;
-    document.getElementById('page-title').textContent = titleInfo.title;
-    document.getElementById('page-subtitle').textContent = titleInfo.subtitle;
+    const titleEl = document.getElementById('page-title');
+    const subtitleEl = document.getElementById('page-subtitle');
+    
+    if (titleEl) titleEl.textContent = titleInfo.title;
+    if (subtitleEl) subtitleEl.textContent = titleInfo.subtitle;
 }
 
-function loadDashboardStats() {
-    const employees = EmployeeManager.getAll();
-    document.getElementById('total-employees').textContent = employees.length;
-    document.getElementById('active-employees').textContent = 
-        employees.filter(e => e.status === 'active').length;
+function loadDashboardData() {
+    const stats = EmployeeManager.getStats();
+    
+    // Update stat cards
+    const totalEl = document.getElementById('total-employees');
+    const activeEl = document.getElementById('active-employees');
+    
+    if (totalEl) totalEl.textContent = stats.total;
+    if (activeEl) activeEl.textContent = stats.active;
+    
+    // Load recent employees
+    loadRecentEmployees();
 }
 
 function loadRecentEmployees() {
-    const employees = EmployeeManager.getAll().slice(-3).reverse();
+    const employees = EmployeeManager.getAll().slice(0, 5);
     const tbody = document.getElementById('recent-employees');
+    
+    if (!tbody) return;
     
     tbody.innerHTML = employees.map(emp => `
         <tr>
             <td>
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    ${UI.generateAvatar(emp.fullName)}
+                    ${UI.generateAvatar(emp.fullName, 36)}
                     <span>${emp.fullName}</span>
                 </div>
             </td>
-            <td>${emp.phone || '-'}</td>
+            <td>${UI.formatPhone(emp.phone)}</td>
             <td>${emp.position || '-'}</td>
             <td>${emp.project || '-'}</td>
-            <td><span class="badge ${emp.status}">${emp.status === 'active' ? 'Aktiv' : 'Passiv'}</span></td>
+            <td>${UI.getStatusBadge(emp.status)}</td>
         </tr>
     `).join('');
 }
@@ -407,16 +930,18 @@ function loadEmployeesTable() {
     const employees = EmployeeManager.getAll();
     const tbody = document.getElementById('employees-table');
     
+    if (!tbody) return;
+    
     tbody.innerHTML = employees.map(emp => `
         <tr>
             <td>${emp.id}</td>
-            <td>${UI.generateAvatar(emp.fullName)}</td>
+            <td>${UI.generateAvatar(emp.fullName, 36)}</td>
             <td>${emp.fullName}</td>
             <td>${emp.username}</td>
-            <td>${emp.phone || '-'}</td>
+            <td>${UI.formatPhone(emp.phone)}</td>
             <td>${emp.position || '-'}</td>
             <td>${emp.project || '-'}</td>
-            <td><span class="badge ${emp.status}">${emp.status === 'active' ? 'Aktiv' : 'Passiv'}</span></td>
+            <td>${UI.getStatusBadge(emp.status)}</td>
             <td>
                 <div class="btn-group">
                     <button class="btn btn-sm btn-primary" onclick="editEmployee(${emp.id})" title="Redaktə">
@@ -434,47 +959,42 @@ function loadEmployeesTable() {
     `).join('');
 }
 
-function setupFilters() {
+function setupAdminEventListeners() {
+    // Search filter
     const searchInput = document.getElementById('employee-search');
-    const statusFilter = document.getElementById('status-filter');
-
     if (searchInput) {
-        searchInput.addEventListener('input', filterEmployees);
+        searchInput.addEventListener('input', debounce(filterEmployees, 300));
     }
+    
+    // Status filter
+    const statusFilter = document.getElementById('status-filter');
     if (statusFilter) {
         statusFilter.addEventListener('change', filterEmployees);
     }
 }
 
 function filterEmployees() {
-    const searchTerm = document.getElementById('employee-search')?.value.toLowerCase() || '';
+    const searchTerm = document.getElementById('employee-search')?.value || '';
     const statusFilter = document.getElementById('status-filter')?.value || '';
     
-    let employees = EmployeeManager.getAll();
-    
-    if (searchTerm) {
-        employees = employees.filter(emp => 
-            emp.fullName.toLowerCase().includes(searchTerm) ||
-            emp.username.toLowerCase().includes(searchTerm) ||
-            (emp.phone && emp.phone.includes(searchTerm))
-        );
-    }
-    
-    if (statusFilter) {
-        employees = employees.filter(emp => emp.status === statusFilter);
-    }
+    const employees = EmployeeManager.getAll({
+        search: searchTerm,
+        status: statusFilter
+    });
     
     const tbody = document.getElementById('employees-table');
+    if (!tbody) return;
+    
     tbody.innerHTML = employees.map(emp => `
         <tr>
             <td>${emp.id}</td>
-            <td>${UI.generateAvatar(emp.fullName)}</td>
+            <td>${UI.generateAvatar(emp.fullName, 36)}</td>
             <td>${emp.fullName}</td>
             <td>${emp.username}</td>
-            <td>${emp.phone || '-'}</td>
+            <td>${UI.formatPhone(emp.phone)}</td>
             <td>${emp.position || '-'}</td>
             <td>${emp.project || '-'}</td>
-            <td><span class="badge ${emp.status}">${emp.status === 'active' ? 'Aktiv' : 'Passiv'}</span></td>
+            <td>${UI.getStatusBadge(emp.status)}</td>
             <td>
                 <div class="btn-group">
                     <button class="btn btn-sm btn-primary" onclick="editEmployee(${emp.id})" title="Redaktə">
@@ -499,7 +1019,7 @@ function openEmployeeModal() {
     editingEmployeeId = null;
     document.getElementById('modal-title').textContent = 'Yeni İşçi Əlavə Et';
     document.getElementById('employeeForm').reset();
-    document.getElementById('employeeModal').classList.add('active');
+    UI.openModal('employeeModal');
 }
 
 function editEmployee(id) {
@@ -509,6 +1029,7 @@ function editEmployee(id) {
     editingEmployeeId = id;
     document.getElementById('modal-title').textContent = 'İşçini Redaktə Et';
     
+    // Fill form
     document.getElementById('emp-fullname').value = employee.fullName;
     document.getElementById('emp-username').value = employee.username;
     document.getElementById('emp-password').value = employee.password;
@@ -518,28 +1039,41 @@ function editEmployee(id) {
     document.getElementById('emp-project').value = employee.project || '';
     document.getElementById('emp-status').value = employee.status;
     
-    document.getElementById('employeeModal').classList.add('active');
+    UI.openModal('employeeModal');
 }
 
 function closeEmployeeModal() {
-    document.getElementById('employeeModal').classList.remove('active');
+    UI.closeModal('employeeModal');
     editingEmployeeId = null;
 }
 
 function saveEmployee() {
     const employeeData = {
-        fullName: document.getElementById('emp-fullname').value,
-        username: document.getElementById('emp-username').value,
+        fullName: document.getElementById('emp-fullname').value.trim(),
+        username: document.getElementById('emp-username').value.trim(),
         password: document.getElementById('emp-password').value,
-        phone: document.getElementById('emp-phone').value,
-        position: document.getElementById('emp-position').value,
-        department: document.getElementById('emp-department').value,
+        phone: document.getElementById('emp-phone').value.trim(),
+        position: document.getElementById('emp-position').value.trim(),
+        department: document.getElementById('emp-department').value.trim(),
         project: document.getElementById('emp-project').value,
         status: document.getElementById('emp-status').value
     };
 
+    // Validation
     if (!employeeData.fullName || !employeeData.username || !employeeData.password) {
-        alert('Zəhmət olmasa bütün vacib sahələri doldurun!');
+        UI.showError('Zəhmət olmasa bütün vacib sahələri doldurun!');
+        return;
+    }
+
+    // Check username uniqueness
+    const data = Storage.getData();
+    const existingUser = data.users.find(u => 
+        u.username.toLowerCase() === employeeData.username.toLowerCase() && 
+        u.id !== editingEmployeeId
+    );
+    
+    if (existingUser) {
+        UI.showError('Bu istifadəçi adı artıq istifadə olunur!');
         return;
     }
 
@@ -547,59 +1081,88 @@ function saveEmployee() {
         EmployeeManager.update(editingEmployeeId, employeeData);
     } else {
         EmployeeManager.create(employeeData);
+        UI.showSuccess('Yeni işçi uğurla əlavə edildi!');
     }
 
     closeEmployeeModal();
     loadEmployeesTable();
     loadRecentEmployees();
-    loadDashboardStats();
+    loadDashboardData();
 }
 
 function toggleEmployeeStatus(id) {
-    EmployeeManager.toggleStatus(id);
-    loadEmployeesTable();
-    loadDashboardStats();
+    const newStatus = EmployeeManager.toggleStatus(id);
+    if (newStatus) {
+        UI.showSuccess(`İşçi statusu ${newStatus === 'active' ? 'aktiv' : 'passiv'} edildi!`);
+        loadEmployeesTable();
+        loadDashboardData();
+    }
 }
 
 function deleteEmployee(id) {
-    if (confirm('Bu işçini silmək istədiyinizə əminsiniz?')) {
-        EmployeeManager.delete(id);
+    UI.confirm('Bu işçini silmək istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz!', () => {
+        const data = Storage.getData();
+        data.users = data.users.filter(u => u.id !== parseInt(id));
+        Storage.setData(data);
+        UI.showSuccess('İşçi silindi!');
         loadEmployeesTable();
-        loadDashboardStats();
-    }
+        loadDashboardData();
+    });
 }
 
 // ============================================
-// EMPLOYEE DASHBOARD FUNCTIONS
+// EMPLOYEE DASHBOARD INITIALIZATION
 // ============================================
 function initEmployeeDashboard() {
-    const user = Auth.checkAuth();
-    if (!user || user.role !== 'employee') {
-        window.location.href = 'login.html';
-        return;
-    }
+    const user = Auth.checkAuth('employee');
+    if (!user) return;
 
-    // Update employee info
-    document.getElementById('emp-name').textContent = user.fullName;
-    document.getElementById('emp-avatar').textContent = UI.getInitials(user.fullName);
-    document.getElementById('profile-initial').textContent = UI.getInitials(user.fullName);
-    document.getElementById('profile-name').textContent = user.fullName;
-    document.getElementById('profile-position').textContent = user.position || 'İşçi';
-
-    // Fill profile info
-    document.getElementById('info-name').textContent = user.fullName;
-    document.getElementById('info-username').textContent = user.username;
-    document.getElementById('info-phone').textContent = user.phone || '-';
-    document.getElementById('info-position').textContent = user.position || '-';
-    document.getElementById('info-department').textContent = user.department || '-';
-    document.getElementById('info-project').textContent = user.project || '-';
-    document.getElementById('info-joined').textContent = UI.formatDate(user.createdAt);
-
+    // Update UI
+    updateEmployeeUI(user);
+    
     // Setup navigation
     setupEmployeeNavigation();
-
-    // Setup leave form
+    
+    // Setup forms
     setupLeaveForm();
+    setupPasswordForm();
+    
+    // Load data
+    loadEmployeeData(user.id);
+}
+
+function updateEmployeeUI(user) {
+    // Update sidebar info
+    const empNameEl = document.getElementById('emp-name');
+    const empAvatarEl = document.getElementById('emp-avatar');
+    
+    if (empNameEl) empNameEl.textContent = user.fullName;
+    if (empAvatarEl) empAvatarEl.textContent = UI.getInitials(user.fullName);
+    
+    // Update profile page
+    const profileInitialEl = document.getElementById('profile-initial');
+    const profileNameEl = document.getElementById('profile-name');
+    const profilePositionEl = document.getElementById('profile-position');
+    
+    if (profileInitialEl) profileInitialEl.textContent = UI.getInitials(user.fullName);
+    if (profileNameEl) profileNameEl.textContent = user.fullName;
+    if (profilePositionEl) profilePositionEl.textContent = user.position || 'İşçi';
+    
+    // Fill info list
+    const infoFields = {
+        'info-name': user.fullName,
+        'info-username': user.username,
+        'info-phone': UI.formatPhone(user.phone),
+        'info-position': user.position || '-',
+        'info-department': user.department || '-',
+        'info-project': user.project || '-',
+        'info-joined': UI.formatDate(user.createdAt)
+    };
+    
+    Object.entries(infoFields).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    });
 }
 
 function setupEmployeeNavigation() {
@@ -639,11 +1202,25 @@ function showEmployeePage(pageName) {
         password: 'Şifrəni Dəyiş'
     };
 
-    document.getElementById('page-title').textContent = titles[pageName] || 'Profil';
+    const titleEl = document.getElementById('page-title');
+    if (titleEl) titleEl.textContent = titles[pageName] || 'Profil';
+    
+    // Load page-specific data
+    if (pageName === 'leaves') {
+        loadLeaveHistory();
+        updateLeaveBalance();
+    }
+}
+
+function loadEmployeeData(employeeId) {
+    // Load notifications count
+    const unreadCount = NotificationManager.getUnreadCount(employeeId);
+    const badgeEl = document.querySelector('.nav-item[data-page="notifications"] .badge');
+    if (badgeEl) badgeEl.textContent = unreadCount;
 }
 
 // ============================================
-// LEAVE MANAGEMENT
+// LEAVE FORM SETUP
 // ============================================
 function setupLeaveForm() {
     const leaveForm = document.getElementById('leaveForm');
@@ -653,14 +1230,25 @@ function setupLeaveForm() {
 
     if (!leaveForm) return;
 
+    // Set min date to today
+    const today = new Date().toISOString().split('T')[0];
+    if (startDate) startDate.min = today;
+    if (endDate) endDate.min = today;
+
     // Calculate days when dates change
     function calculateDays() {
         if (startDate.value && endDate.value) {
             const start = new Date(startDate.value);
             const end = new Date(endDate.value);
-            const diffTime = Math.abs(end - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            daysInput.value = diffDays > 0 ? diffDays : 0;
+            
+            if (end < start) {
+                endDate.value = startDate.value;
+                UI.showError('Bitmə tarixi başlama tarixindən əvvəl ola bilməz!');
+                return;
+            }
+            
+            const days = LeaveManager.calculateDays(startDate.value, endDate.value);
+            if (daysInput) daysInput.value = days;
         }
     }
 
@@ -671,99 +1259,196 @@ function setupLeaveForm() {
     leaveForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
+        const leaveType = document.getElementById('leave-type');
         const leaveData = {
-            type: document.getElementById('leave-type').value,
-            typeLabel: document.getElementById('leave-type').options[document.getElementById('leave-type').selectedIndex].text,
+            type: leaveType.value,
+            typeLabel: leaveType.options[leaveType.selectedIndex].text,
             startDate: startDate.value,
             endDate: endDate.value,
-            days: daysInput.value,
-            reason: document.getElementById('leave-reason').value,
-            status: 'pending',
-            requestedAt: new Date().toISOString().split('T')[0]
+            days: parseInt(daysInput.value) || 0,
+            reason: document.getElementById('leave-reason')?.value.trim() || ''
         };
 
-        if (!leaveData.type || !leaveData.startDate || !leaveData.endDate) {
-            alert('Zəhmət olmasa bütün vacib sahələri doldurun!');
+        // Validation
+        if (!leaveData.type) {
+            UI.showError('İcazə növünü seçin!');
+            return;
+        }
+        
+        if (!leaveData.startDate || !leaveData.endDate) {
+            UI.showError('Başlama və bitmə tarixlərini seçin!');
             return;
         }
 
-        // Save to localStorage
-        const data = Storage.getData();
+        // Check leave balance
         const user = Auth.getCurrentUser();
+        if (leaveData.type === 'annual' && user.leaveBalance) {
+            if (leaveData.days > user.leaveBalance.remaining) {
+                UI.showError(`Yalnız ${user.leaveBalance.remaining} gün icazə balansınız var!`);
+                return;
+            }
+        }
+
+        // Create leave request
+        LeaveManager.create(leaveData);
         
-        if (!data.leaves) data.leaves = [];
-        
-        data.leaves.push({
-            id: Date.now(),
-            employeeId: user.id,
-            ...leaveData
-        });
-        
-        Storage.setData(data);
-        
-        // Add to table
-        addLeaveToTable(leaveData);
+        UI.showSuccess('İcazə istəyi uğurla göndərildi!');
         
         // Reset form
         leaveForm.reset();
-        daysInput.value = '';
+        if (daysInput) daysInput.value = '';
         
-        alert('İcazə istəyi uğurla göndərildi!');
+        // Refresh history
+        loadLeaveHistory();
     });
 }
 
-function addLeaveToTable(leave) {
-    const tbody = document.getElementById('leaves-table');
-    if (!tbody) return;
-
-    const statusBadges = {
-        pending: '<span class="badge bg-warning">Gözləyir</span>',
-        approved: '<span class="badge bg-success">Təsdiqləndi</span>',
-        rejected: '<span class="badge bg-danger">Rədd edildi</span>'
-    };
-
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td>${leave.requestedAt}</td>
-        <td>${leave.typeLabel}</td>
-        <td>${leave.startDate}</td>
-        <td>${leave.endDate}</td>
-        <td>${leave.days}</td>
-        <td>${leave.reason || '-'}</td>
-        <td>${statusBadges[leave.status] || statusBadges.pending}</td>
-    `;
+function loadLeaveHistory() {
+    const user = Auth.getCurrentUser();
+    if (!user) return;
     
-    tbody.insertBefore(row, tbody.firstChild);
+    const leaves = LeaveManager.getForEmployee(user.id);
+    const tbody = document.getElementById('leaves-table');
+    
+    if (!tbody) return;
+    
+    if (leaves.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <p>Heç bir icazə qeydi yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = leaves.map(leave => `
+        <tr>
+            <td>${UI.formatDate(leave.requestedAt)}</td>
+            <td>${leave.typeLabel}</td>
+            <td>${UI.formatDate(leave.startDate)}</td>
+            <td>${UI.formatDate(leave.endDate)}</td>
+            <td>${leave.days}</td>
+            <td>${UI.truncate(leave.reason, 30) || '-'}</td>
+            <td>${UI.getStatusBadge(leave.status)}</td>
+        </tr>
+    `).join('');
+}
+
+function updateLeaveBalance() {
+    const user = Auth.getCurrentUser();
+    if (!user || !user.leaveBalance) return;
+    
+    const annualEl = document.getElementById('annual-balance');
+    const usedEl = document.getElementById('used-leaves');
+    const remainingEl = document.getElementById('remaining-leaves');
+    
+    if (annualEl) annualEl.textContent = user.leaveBalance.annual;
+    if (usedEl) usedEl.textContent = user.leaveBalance.used;
+    if (remainingEl) remainingEl.textContent = user.leaveBalance.remaining;
 }
 
 // ============================================
-// LOGOUT
+// PASSWORD FORM SETUP
 // ============================================
+function setupPasswordForm() {
+    const form = document.getElementById('passwordForm');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const currentPassword = form.querySelector('input[type="password"]:nth-of-type(1)').value;
+        const newPassword = form.querySelector('input[type="password"]:nth-of-type(2)').value;
+        const confirmPassword = form.querySelector('input[type="password"]:nth-of-type(3)').value;
+        
+        if (newPassword !== confirmPassword) {
+            UI.showError('Yeni şifrələr uyğun gəlmir!');
+            return;
+        }
+        
+        if (newPassword.length < 6) {
+            UI.showError('Şifrə ən az 6 simvol olmalıdır!');
+            return;
+        }
+        
+        const result = Auth.changePassword(currentPassword, newPassword);
+        
+        if (result.success) {
+            UI.showSuccess(result.message);
+            form.reset();
+        } else {
+            UI.showError(result.message);
+        }
+    });
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
 function logout() {
     Auth.logout();
 }
 
 // ============================================
-// INITIALIZE
+// INITIALIZE APPLICATION
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize storage
     Storage.init();
 
+    // Determine page and initialize
     const path = window.location.pathname;
+    const page = path.split('/').pop();
     
-    if (path.includes('login.html') || path.endsWith('/')) {
-        initLoginPage();
-    } else if (path.includes('admin-dashboard.html')) {
-        initAdminDashboard();
-    } else if (path.includes('employee-dashboard.html')) {
-        initEmployeeDashboard();
+    switch(page) {
+        case 'login.html':
+        case '':
+        case 'index.html':
+            initLoginPage();
+            break;
+        case 'admin-dashboard.html':
+            initAdminDashboard();
+            break;
+        case 'employee-dashboard.html':
+            initEmployeeDashboard();
+            break;
     }
 });
 
 // Close modal on outside click
-window.onclick = function(event) {
-    const modal = document.getElementById('employeeModal');
-    if (event.target === modal) {
-        closeEmployeeModal();
+window.addEventListener('click', function(event) {
+    const modal = document.querySelector('.modal.active');
+    if (modal && event.target === modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
     }
-};
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // ESC to close modals
+    if (e.key === 'Escape') {
+        const modal = document.querySelector('.modal.active');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+});

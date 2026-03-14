@@ -44,6 +44,10 @@
                 <a href="#" class="nav-item" data-page="tasks">
                     <i class="bi bi-list-task"></i> Tapşırıqlar
                 </a>
+                <a href="#" class="nav-item" data-page="leaves">
+                    <i class="bi bi-calendar-plus"></i> İcazələr
+                    <span class="badge" id="pending-leaves-badge">0</span>
+                </a>
                 <a href="#" class="nav-item" data-page="reports">
                     <i class="bi bi-graph-up"></i> Hesabatlar
                 </a>
@@ -304,6 +308,70 @@
                 </div>
             </div>
 
+            <div id="leaves-page" class="page-content">
+                <div class="stats-grid three">
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gözləyən</h3>
+                            <p id="pending-leaves-count">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Təsdiqlənən</h3>
+                            <p id="approved-leaves-count">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Rədd edilən</h3>
+                            <p id="rejected-leaves-count">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-calendar-plus"></i> İcazə İstəkləri</h2>
+                        <div class="filters">
+                            <select id="leave-status-filter" class="form-control">
+                                <option value="">Bütün statuslar</option>
+                                <option value="pending">Gözləyir</option>
+                                <option value="approved">Təsdiqləndi</option>
+                                <option value="rejected">Rədd edildi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>İşçi</th>
+                                    <th>Növ</th>
+                                    <th>Başlama</th>
+                                    <th>Bitmə</th>
+                                    <th>Gün</th>
+                                    <th>Maaş Təsiri</th>
+                                    <th>Status</th>
+                                    <th>Əməliyyatlar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-leaves-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div id="reports-page" class="page-content">
                 <div class="panel">
                     <div class="panel-header">
@@ -388,6 +456,32 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="closeEmployeeModal()">Bağla</button>
                     <button class="btn btn-primary" onclick="saveEmployee()">Yadda saxla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave Action Modal -->
+    <div class="modal" id="leaveActionModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="leave-modal-title">İcazə İstəyi</h3>
+                    <button class="btn-close" onclick="closeLeaveModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="leave-details">
+                        <!-- Leave details will be loaded here -->
+                    </div>
+                    <div id="reject-reason-container" class="form-group" style="display: none;">
+                        <label>Rədd səbəbi *</label>
+                        <textarea id="reject-reason" class="form-control" rows="3" placeholder="Rədd səbəbini qeyd edin..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer" id="leave-modal-footer">
+                    <button class="btn btn-secondary" onclick="closeLeaveModal()">Bağla</button>
+                    <button class="btn btn-danger" onclick="showRejectForm()">Rədd et</button>
+                    <button class="btn btn-success" onclick="approveLeave()">Təsdiqlə</button>
                 </div>
             </div>
         </div>

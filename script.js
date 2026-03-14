@@ -902,6 +902,9 @@ function showPage(pageName) {
         case 'employees':
             loadEmployeesTable();
             break;
+        case 'leaves':
+            loadAdminLeaves();
+            break;
     }
 }
 
@@ -1147,6 +1150,191 @@ function deleteEmployee(id) {
         loadDashboardData();
     });
 }
+
+// ============================================
+// ADMIN LEAVE MANAGEMENT
+// ============================================
+let selectedLeaveId = null;
+
+function loadAdminLeaves() {
+    const statusFilter = document.getElementById('leave-status-filter')?.value || '';
+    const leaves = LeaveManager.getAll(statusFilter);
+    
+    // Update stats
+    const allLeaves = LeaveManager.getAll();
+    document.getElementById('pending-leaves-count').textContent = allLeaves.filter(l => l.status === 'pending').length;
+    document.getElementById('approved-leaves-count').textContent = allLeaves.filter(l => l.status === 'approved').length;
+    document.getElementById('rejected-leaves-count').textContent = allLeaves.filter(l => l.status === 'rejected').length;
+    
+    // Update badge
+    const badge = document.getElementById('pending-leaves-badge');
+    if (badge) badge.textContent = allLeaves.filter(l => l.status === 'pending').length;
+    
+    const tbody = document.getElementById('admin-leaves-table');
+    if (!tbody) return;
+    
+    if (leaves.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <p>Heç bir icazə istəyi yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = leaves.map(leave => {
+        const employee = Storage.getUserById(leave.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        
+        let salaryImpact = '';
+        if (leave.type === 'unpaid') {
+            salaryImpact = '<span class="text-success">0 ₼ (Pulsuz)</span>';
+        } else if (leave.salaryDeduction > 0) {
+            salaryImpact = `<span class="text-danger">-${UI.formatCurrency(leave.salaryDeduction)}</span>`;
+        } else {
+            salaryImpact = '<span class="text-muted">-</span>';
+        }
+        
+        let actions = '';
+        if (leave.status === 'pending') {
+            actions = `
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-success" onclick="openLeaveModal(${leave.id})" title="Təsdiqlə/Rədd et">
+                        <i class="bi bi-check-lg"></i> Bax
+                    </button>
+                </div>
+            `;
+        } else {
+            actions = `<span class="text-muted">${leave.status === 'approved' ? 'Təsdiqləndi' : 'Rədd edildi'}</span>`;
+        }
+        
+        return `
+            <tr>
+                <td>${UI.generateAvatar(employeeName, 32)} ${employeeName}</td>
+                <td>${leave.typeLabel}</td>
+                <td>${UI.formatDate(leave.startDate)}</td>
+                <td>${UI.formatDate(leave.endDate)}</td>
+                <td>${leave.days}</td>
+                <td>${salaryImpact}</td>
+                <td>${UI.getStatusBadge(leave.status)}</td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openLeaveModal(leaveId) {
+    selectedLeaveId = leaveId;
+    const leave = LeaveManager.getAll().find(l => l.id === leaveId);
+    if (!leave) return;
+    
+    const employee = Storage.getUserById(leave.employeeId);
+    const employeeName = employee ? employee.fullName : 'Naməlum';
+    
+    let salaryInfo = '';
+    if (leave.type === 'unpaid') {
+        salaryInfo = '<p><strong>Maaş təsiri:</strong> <span class="text-success">Pulsuz icazə - Tutulma olmayacaq</span></p>';
+    } else if (leave.salaryDeduction > 0) {
+        salaryInfo = `<p><strong>Maaş təsiri:</strong> <span class="text-danger">${UI.formatCurrency(leave.salaryDeduction)} tutulacaq</span></p>`;
+    }
+    
+    document.getElementById('leave-details').innerHTML = `
+        <div class="info-list">
+            <div class="info-item">
+                <span class="label">İşçi:</span>
+                <span class="value">${employeeName}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">İcazə növü:</span>
+                <span class="value">${leave.typeLabel}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Tarix aralığı:</span>
+                <span class="value">${UI.formatDate(leave.startDate)} - ${UI.formatDate(leave.endDate)}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Gün sayı:</span>
+                <span class="value">${leave.days} gün</span>
+            </div>
+            ${salaryInfo}
+            <div class="info-item">
+                <span class="label">Səbəb:</span>
+                <span class="value">${leave.reason || '-'}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">İstək tarixi:</span>
+                <span class="value">${UI.formatDate(leave.requestedAt)}</span>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('reject-reason-container').style.display = 'none';
+    document.getElementById('reject-reason').value = '';
+    UI.openModal('leaveActionModal');
+}
+
+function closeLeaveModal() {
+    UI.closeModal('leaveActionModal');
+    selectedLeaveId = null;
+}
+
+function showRejectForm() {
+    document.getElementById('reject-reason-container').style.display = 'block';
+    document.getElementById('leave-modal-footer').innerHTML = `
+        <button class="btn btn-secondary" onclick="cancelReject()">Geri</button>
+        <button class="btn btn-danger" onclick="confirmReject()">Rədd et</button>
+    `;
+}
+
+function cancelReject() {
+    document.getElementById('reject-reason-container').style.display = 'none';
+    document.getElementById('reject-reason').value = '';
+    document.getElementById('leave-modal-footer').innerHTML = `
+        <button class="btn btn-secondary" onclick="closeLeaveModal()">Bağla</button>
+        <button class="btn btn-danger" onclick="showRejectForm()">Rədd et</button>
+        <button class="btn btn-success" onclick="approveLeave()">Təsdiqlə</button>
+    `;
+}
+
+function approveLeave() {
+    if (!selectedLeaveId) return;
+    
+    const user = Auth.getCurrentUser();
+    LeaveManager.approve(selectedLeaveId, user.id);
+    
+    UI.showSuccess('İcazə təsdiqləndi!');
+    closeLeaveModal();
+    loadAdminLeaves();
+}
+
+function confirmReject() {
+    if (!selectedLeaveId) return;
+    
+    const reason = document.getElementById('reject-reason').value.trim();
+    if (!reason) {
+        UI.showError('Rədd səbəbini qeyd edin!');
+        return;
+    }
+    
+    LeaveManager.reject(selectedLeaveId, reason);
+    
+    UI.showSuccess('İcazə rədd edildi!');
+    closeLeaveModal();
+    loadAdminLeaves();
+}
+
+// Setup leave filter
+document.addEventListener('DOMContentLoaded', function() {
+    const leaveFilter = document.getElementById('leave-status-filter');
+    if (leaveFilter) {
+        leaveFilter.addEventListener('change', loadAdminLeaves);
+    }
+});
 
 // ============================================
 // EMPLOYEE DASHBOARD INITIALIZATION

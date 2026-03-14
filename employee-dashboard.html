@@ -31,6 +31,7 @@
                 </a>
                 <a href="#" class="nav-item" data-page="advances">
                     <i class="bi bi-cash"></i> Avanslar
+                    <span class="badge" id="advance-badge">0</span>
                 </a>
                 <a href="#" class="nav-item" data-page="fines">
                     <i class="bi bi-exclamation-triangle"></i> Cərimələr
@@ -281,9 +282,77 @@
 
             <!-- Advances Page -->
             <div id="advances-page" class="page-content">
-                <div class="panel">
+                <div class="content-grid">
+                    <!-- New Advance Request -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2><i class="bi bi-cash"></i> Yeni Avans İstəyi</h2>
+                        </div>
+                        <form id="advanceForm" class="form-vertical" style="padding: 0 24px 24px;">
+                            <div class="form-group">
+                                <label>Məbləğ (AZN) *</label>
+                                <input type="number" id="advance-amount" class="form-control" min="1" max="2000" step="1" placeholder="Məsələn: 500" required>
+                                <small class="form-text text-muted">Minimum 1 ₼, maksimum 2000 ₼</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Səbəb *</label>
+                                <textarea id="advance-reason" class="form-control" rows="3" placeholder="Avans səbəbini qeyd edin..." required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>İstənilən ödəniş tarixi</label>
+                                <input type="date" id="advance-date" class="form-control">
+                                <small class="form-text text-muted">Boş qalsa, ən qısa zamanda ödəniləcək</small>
+                            </div>
+                            <div class="alert alert-info" style="margin-bottom: 16px;">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Məlumat:</strong> Avans istəkləri admin tərəfindən təsdiqləndikdən sonra növbəti maaş ödənişində çıxılacaq.
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send"></i> Avans İstəyi Göndər
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Advance Stats -->
+                    <div class="side-panels">
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3><i class="bi bi-graph-up"></i> Avans Statistikası</h3>
+                            </div>
+                            <div class="leave-balance">
+                                <div class="balance-item">
+                                    <span class="label">Bu il üzrə:</span>
+                                    <span class="value"><strong id="total-advances-year">0</strong> ₼</span>
+                                </div>
+                                <div class="balance-item">
+                                    <span class="label">Gözləyən:</span>
+                                    <span class="value text-warning"><strong id="pending-advances">0</strong> ₼</span>
+                                </div>
+                                <div class="balance-item">
+                                    <span class="label">Təsdiqlənib (çıxılmayıb):</span>
+                                    <span class="value text-info"><strong id="approved-advances">0</strong> ₼</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <h3><i class="bi bi-info-circle"></i> Məlumat</h3>
+                            </div>
+                            <div class="info-box" style="padding: 0 24px 24px;">
+                                <p><i class="bi bi-check-circle text-success"></i> Avans istəkləri 24 saat ərzində cavablandırılır.</p>
+                                <p><i class="bi bi-check-circle text-success"></i> Təsdiqlənən avanslar növbəti maaşdan çıxılır.</p>
+                                <p><i class="bi bi-exclamation-circle text-warning"></i> Bir ayda maksimum 2 avans istəyi edə bilərsiniz.</p>
+                                <p><i class="bi bi-exclamation-circle text-warning"></i> Maksimum avans məbləği aylıq maaşınızın 50%-i qədərdir.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advance History -->
+                <div class="panel" style="margin-top: 24px;">
                     <div class="panel-header">
-                        <h2><i class="bi bi-cash"></i> Avans Tarixçəsi</h2>
+                        <h2><i class="bi bi-clock-history"></i> Avans Tarixçəm</h2>
                     </div>
                     <div class="table-responsive">
                         <table class="data-table">
@@ -293,21 +362,11 @@
                                     <th>Məbləğ</th>
                                     <th>Səbəb</th>
                                     <th>Status</th>
+                                    <th>Qeyd</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>15.03.2025</td>
-                                    <td>150 ₼</td>
-                                    <td>Şəxsi ehtiyac</td>
-                                    <td><span class="badge bg-success">Təsdiqlənib</span></td>
-                                </tr>
-                                <tr>
-                                    <td>10.02.2025</td>
-                                    <td>100 ₼</td>
-                                    <td>Şəxsi ehtiyac</td>
-                                    <td><span class="badge bg-success">Çıxılıb</span></td>
-                                </tr>
+                            <tbody id="advances-table">
+                                <!-- Dynamic content -->
                             </tbody>
                         </table>
                     </div>

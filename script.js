@@ -626,6 +626,641 @@ const NotificationManager = {
 };
 
 // ============================================
+// ADVANCE MANAGER
+// ============================================
+const AdvanceManager = {
+    getForEmployee(employeeId) {
+        const data = Storage.getData();
+        if (!data.advances) data.advances = [];
+        return data.advances
+            .filter(a => a.employeeId === parseInt(employeeId))
+            .sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+    },
+
+    getAll(status = null) {
+        const data = Storage.getData();
+        if (!data.advances) data.advances = [];
+        let advances = data.advances;
+        if (status) {
+            advances = advances.filter(a => a.status === status);
+        }
+        return advances.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+    },
+
+    create(advanceData) {
+        const data = Storage.getData();
+        const user = Auth.getCurrentUser();
+        
+        if (!data.advances) data.advances = [];
+        
+        // Check monthly limit (max 2 per month)
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const monthlyRequests = data.advances.filter(a => 
+            a.employeeId === user.id && 
+            a.requestedAt.startsWith(currentMonth)
+        ).length;
+        
+        if (monthlyRequests >= 2) {
+            return { success: false, message: 'Bir ayda maksimum 2 avans istəyi edə bilərsiniz!' };
+        }
+        
+        // Check max amount (50% of salary)
+        if (user.salary && advanceData.amount > user.salary * 0.5) {
+            return { success: false, message: `Maksimum avans məbləği aylıq maaşınızın 50%-i (${UI.formatCurrency(user.salary * 0.5)}) qədərdir!` };
+        }
+        
+        const newAdvance = {
+            id: Date.now(),
+            employeeId: user.id,
+            status: 'pending',
+            requestedAt: new Date().toISOString().split('T')[0],
+            ...advanceData
+        };
+        
+        data.advances.push(newAdvance);
+        Storage.setData(data);
+        
+        // Notify admin
+        NotificationManager.create({
+            employeeId: 1, // Admin
+            title: 'Yeni avans istəyi',
+            message: `${user.fullName} ${UI.formatCurrency(advanceData.amount)} avans istədi.`,
+            type: 'advance'
+        });
+        
+        return { success: true, advance: newAdvance };
+    },
+
+    approve(advanceId, approvedBy) {
+        const data = Storage.getData();
+        const advance = data.advances.find(a => a.id === parseInt(advanceId));
+        if (advance) {
+            advance.status = 'approved';
+            advance.approvedBy = approvedBy;
+            advance.approvedAt = new Date().toISOString().split('T')[0];
+            Storage.setData(data);
+            
+            // Notify employee
+            NotificationManager.create({
+                employeeId: advance.employeeId,
+                title: 'Avans təsdiqləndi',
+                message: `${UI.formatCurrency(advance.amount)} məbləğində avans istəyiniz təsdiqləndi. Növbəti maaşdan çıxılacaq.`,
+                type: 'advance'
+            });
+            
+            return advance;
+        }
+        return null;
+    },
+
+    reject(advanceId, reason) {
+        const data = Storage.getData();
+        const advance = data.advances.find(a => a.id === parseInt(advanceId));
+        if (advance) {
+            advance.status = 'rejected';
+            advance.rejectionReason = reason;
+            advance.rejectedAt = new Date().toISOString().split('T')[0];
+            Storage.setData(data);
+            
+            // Notify employee
+            NotificationManager.create({
+                employeeId: advance.employeeId,
+                title: 'Avans rədd edildi',
+                message: `Avans istəyiniz rədd edildi. Səbəb: ${reason}`,
+                type: 'advance'
+            });
+            
+            return advance;
+        }
+        return null;
+    },
+
+    markAsDeducted(advanceId) {
+        const data = Storage.getData();
+        const advance = data.advances.find(a => a.id === parseInt(advanceId));
+        if (advance) {
+            advance.status = 'deducted';
+            advance.deductedAt = new Date().toISOString().split('T')[0];
+            Storage.setData(data);
+            
+            // Notify employee
+            NotificationManager.create({
+                employeeId: advance.employeeId,
+                title: 'Avans çıxıldı',
+                message: `${UI.formatCurrency(advance.amount)} məbləğində avans maaşınızdan çıxıldı.`,
+                type: 'advance'
+            });
+            
+            return advance;
+        }
+        return null;
+    },
+
+    getStats(employeeId) {
+        const advances = this.getForEmployee(employeeId);
+        const currentYear = new Date().getFullYear().toString();
+        
+        return {
+            totalYear: advances
+                .filter(a => a.requestedAt.startsWith(currentYear) && (a.status === 'approved' || a.status === 'deducted'))
+                .reduce((sum, a) => sum + a.amount, 0),
+            pending: advances
+                .filter(a => a.status === 'pending')
+                .reduce((sum, a) => sum + a.amount, 0),
+            approved: advances
+                .filter(a => a.status === 'approved')
+                .reduce((sum, a) => sum + a.amount, 0),
+            totalCount: advances.length
+        };
+    }
+};
+
+// ============================================
+// PROJECT MANAGER
+// ============================================
+const ProjectManager = {
+    getAll(status = null) {
+        const data = Storage.getData();
+        if (!data.projects) data.projects = [];
+        let projects = data.projects;
+        if (status) {
+            projects = projects.filter(p => p.status === status);
+        }
+        return projects.sort((a, b) => b.id - a.id);
+    },
+
+    getById(id) {
+        const data = Storage.getData();
+        return data.projects.find(p => p.id === parseInt(id));
+    },
+
+    create(projectData) {
+        const data = Storage.getData();
+        if (!data.projects) data.projects = [];
+        
+        const newId = Math.max(...data.projects.map(p => p.id), 0) + 1;
+        
+        const newProject = {
+            id: newId,
+            ...projectData,
+            createdAt: new Date().toISOString().split('T')[0]
+        };
+        
+        data.projects.push(newProject);
+        Storage.setData(data);
+        return newProject;
+    },
+
+    update(id, projectData) {
+        const data = Storage.getData();
+        const index = data.projects.findIndex(p => p.id === parseInt(id));
+        if (index !== -1) {
+            data.projects[index] = { ...data.projects[index], ...projectData };
+            Storage.setData(data);
+            return data.projects[index];
+        }
+        return null;
+    },
+
+    delete(id) {
+        const data = Storage.getData();
+        data.projects = data.projects.filter(p => p.id !== parseInt(id));
+        Storage.setData(data);
+    },
+
+    getStats() {
+        const projects = this.getAll();
+        const data = Storage.getData();
+        const employees = data.users.filter(u => u.role === 'employee');
+        
+        return {
+            total: projects.length,
+            active: projects.filter(p => p.status === 'active').length,
+            completed: projects.filter(p => p.status === 'completed').length,
+            paused: projects.filter(p => p.status === 'paused').length,
+            employeeCount: employees.length
+        };
+    },
+
+    getEmployeeCount(projectId) {
+        const data = Storage.getData();
+        const project = this.getById(projectId);
+        if (!project) return 0;
+        return data.users.filter(u => u.role === 'employee' && u.project === project.name).length;
+    }
+};
+
+// ============================================
+// ATTENDANCE MANAGER
+// ============================================
+const AttendanceManager = {
+    getAll(date = null, status = null) {
+        const data = Storage.getData();
+        if (!data.attendance) data.attendance = [];
+        let records = data.attendance;
+        
+        if (date) {
+            records = records.filter(a => a.date === date);
+        }
+        if (status) {
+            records = records.filter(a => a.status === status);
+        }
+        
+        return records.sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
+
+    getForEmployee(employeeId, month = null) {
+        const data = Storage.getData();
+        if (!data.attendance) data.attendance = [];
+        let records = data.attendance.filter(a => a.employeeId === parseInt(employeeId));
+        
+        if (month) {
+            records = records.filter(a => a.date.startsWith(month));
+        }
+        
+        return records.sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
+
+    create(recordData) {
+        const data = Storage.getData();
+        if (!data.attendance) data.attendance = [];
+        
+        const newRecord = {
+            id: Date.now(),
+            ...recordData
+        };
+        
+        data.attendance.push(newRecord);
+        Storage.setData(data);
+        return newRecord;
+    },
+
+    update(id, recordData) {
+        const data = Storage.getData();
+        const index = data.attendance.findIndex(a => a.id === parseInt(id));
+        if (index !== -1) {
+            data.attendance[index] = { ...data.attendance[index], ...recordData };
+            Storage.setData(data);
+            return data.attendance[index];
+        }
+        return null;
+    },
+
+    delete(id) {
+        const data = Storage.getData();
+        data.attendance = data.attendance.filter(a => a.id !== parseInt(id));
+        Storage.setData(data);
+    },
+
+    getTodayStats() {
+        const today = new Date().toISOString().split('T')[0];
+        const records = this.getAll(today);
+        
+        return {
+            present: records.filter(r => r.status === 'present').length,
+            late: records.filter(r => r.status === 'late').length,
+            absent: records.filter(r => r.status === 'absent').length,
+            excused: records.filter(r => r.status === 'excused').length,
+            total: records.length
+        };
+    },
+
+    getMonthlyStats(employeeId, month) {
+        const records = this.getForEmployee(employeeId, month);
+        
+        return {
+            present: records.filter(r => r.status === 'present').length,
+            late: records.filter(r => r.status === 'late').length,
+            absent: records.filter(r => r.status === 'absent').length,
+            excused: records.filter(r => r.status === 'excused').length,
+            total: records.length
+        };
+    }
+};
+
+// ============================================
+// SALARY MANAGER
+// ============================================
+const SalaryManager = {
+    getAll(month = null, status = null) {
+        const data = Storage.getData();
+        if (!data.salaries) data.salaries = [];
+        let salaries = data.salaries;
+        
+        if (month) {
+            salaries = salaries.filter(s => s.month === month);
+        }
+        if (status) {
+            salaries = salaries.filter(s => s.status === status);
+        }
+        
+        return salaries.sort((a, b) => b.id - a.id);
+    },
+
+    getForEmployee(employeeId) {
+        const data = Storage.getData();
+        if (!data.salaries) data.salaries = [];
+        return data.salaries
+            .filter(s => s.employeeId === parseInt(employeeId))
+            .sort((a, b) => b.id - a.id);
+    },
+
+    calculateSalary(employeeId, month) {
+        const data = Storage.getData();
+        const employee = Storage.getUserById(employeeId);
+        if (!employee || !employee.salary) return null;
+        
+        // Get advances for this month
+        const advances = data.advances ? data.advances.filter(a => 
+            a.employeeId === employeeId && 
+            a.date.startsWith(month) &&
+            (a.status === 'approved' || a.status === 'deducted')
+        ) : [];
+        const totalAdvances = advances.reduce((sum, a) => sum + a.amount, 0);
+        
+        // Get fines for this month
+        const fines = data.fines ? data.fines.filter(f => 
+            f.employeeId === employeeId && 
+            f.date.startsWith(month) &&
+            (f.status === 'active' || f.status === 'deducted')
+        ) : [];
+        const totalFines = fines.reduce((sum, f) => sum + f.amount, 0);
+        
+        // Calculate overtime (example: 50 AZN)
+        const overtime = 50;
+        
+        // Calculate bonus (example: 100 AZN)
+        const bonus = 100;
+        
+        const netSalary = employee.salary + bonus + overtime - totalAdvances - totalFines;
+        
+        return {
+            employeeId: employeeId,
+            month: month,
+            baseSalary: employee.salary,
+            bonus: bonus,
+            overtime: overtime,
+            advance: totalAdvances,
+            fine: totalFines,
+            netSalary: netSalary,
+            status: 'pending'
+        };
+    },
+
+    create(salaryData) {
+        const data = Storage.getData();
+        if (!data.salaries) data.salaries = [];
+        
+        const newId = Math.max(...data.salaries.map(s => s.id), 0) + 1;
+        
+        const newSalary = {
+            id: newId,
+            ...salaryData,
+            createdAt: new Date().toISOString().split('T')[0]
+        };
+        
+        data.salaries.push(newSalary);
+        Storage.setData(data);
+        
+        // Notify employee
+        NotificationManager.create({
+            employeeId: salaryData.employeeId,
+            title: 'Yeni maaş hesablanması',
+            message: `${salaryData.month} ayı üzrə maaşınız hesablandı: ${UI.formatCurrency(salaryData.netSalary)}`,
+            type: 'salary'
+        });
+        
+        return newSalary;
+    },
+
+    markAsPaid(salaryId) {
+        const data = Storage.getData();
+        const salary = data.salaries.find(s => s.id === parseInt(salaryId));
+        if (salary) {
+            salary.status = 'paid';
+            salary.paidDate = new Date().toISOString().split('T')[0];
+            Storage.setData(data);
+            
+            // Notify employee
+            NotificationManager.create({
+                employeeId: salary.employeeId,
+                title: 'Maaş ödənişi',
+                message: `${salary.month} ayı üzrə maaşınız ödəndi: ${UI.formatCurrency(salary.netSalary)}`,
+                type: 'salary'
+            });
+            
+            return salary;
+        }
+        return null;
+    },
+
+    getStats(month = null) {
+        const salaries = this.getAll(month);
+        
+        return {
+            totalFund: salaries.reduce((sum, s) => sum + s.netSalary, 0),
+            pending: salaries.filter(s => s.status === 'pending').length,
+            paid: salaries.filter(s => s.status === 'paid').length,
+            totalCount: salaries.length
+        };
+    }
+};
+
+// ============================================
+// FINE MANAGER
+// ============================================
+const FineManager = {
+    getAll(status = null) {
+        const data = Storage.getData();
+        if (!data.fines) data.fines = [];
+        let fines = data.fines;
+        if (status) {
+            fines = fines.filter(f => f.status === status);
+        }
+        return fines.sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
+
+    getForEmployee(employeeId) {
+        const data = Storage.getData();
+        if (!data.fines) data.fines = [];
+        return data.fines
+            .filter(f => f.employeeId === parseInt(employeeId))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
+
+    create(fineData) {
+        const data = Storage.getData();
+        if (!data.fines) data.fines = [];
+        
+        const newFine = {
+            id: Date.now(),
+            status: 'active',
+            ...fineData
+        };
+        
+        data.fines.push(newFine);
+        Storage.setData(data);
+        
+        // Notify employee
+        const employee = Storage.getUserById(fineData.employeeId);
+        NotificationManager.create({
+            employeeId: fineData.employeeId,
+            title: 'Yeni cərimə',
+            message: `${UI.formatCurrency(fineData.amount)} məbləğində cəriməniz var. Səbəb: ${fineData.reason}`,
+            type: 'fine'
+        });
+        
+        return newFine;
+    },
+
+    markAsDeducted(fineId) {
+        const data = Storage.getData();
+        const fine = data.fines.find(f => f.id === parseInt(fineId));
+        if (fine) {
+            fine.status = 'deducted';
+            fine.deductedAt = new Date().toISOString().split('T')[0];
+            Storage.setData(data);
+            
+            // Notify employee
+            NotificationManager.create({
+                employeeId: fine.employeeId,
+                title: 'Cərimə çıxıldı',
+                message: `${UI.formatCurrency(fine.amount)} məbləğində cərimə maaşınızdan çıxıldı.`,
+                type: 'fine'
+            });
+            
+            return fine;
+        }
+        return null;
+    },
+
+    delete(fineId) {
+        const data = Storage.getData();
+        data.fines = data.fines.filter(f => f.id !== parseInt(fineId));
+        Storage.setData(data);
+    },
+
+    getStats() {
+        const fines = this.getAll();
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        
+        return {
+            active: fines.filter(f => f.status === 'active').length,
+            deducted: fines.filter(f => f.status === 'deducted').length,
+            monthlyAmount: fines
+                .filter(f => f.date.startsWith(currentMonth) && (f.status === 'active' || f.status === 'deducted'))
+                .reduce((sum, f) => sum + f.amount, 0),
+            totalCount: fines.length
+        };
+    }
+};
+
+// ============================================
+// TASK MANAGER
+// ============================================
+const TaskManager = {
+    getAll(status = null, priority = null) {
+        const data = Storage.getData();
+        if (!data.tasks) data.tasks = [];
+        let tasks = data.tasks;
+        
+        if (status) {
+            tasks = tasks.filter(t => t.status === status);
+        }
+        if (priority) {
+            tasks = tasks.filter(t => t.priority === priority);
+        }
+        
+        return tasks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+
+    getForEmployee(employeeId) {
+        const data = Storage.getData();
+        if (!data.tasks) data.tasks = [];
+        return data.tasks
+            .filter(t => t.employeeId === parseInt(employeeId))
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    },
+
+    create(taskData) {
+        const data = Storage.getData();
+        if (!data.tasks) data.tasks = [];
+        
+        const newTask = {
+            id: Date.now(),
+            status: 'pending',
+            createdAt: new Date().toISOString().split('T')[0],
+            ...taskData
+        };
+        
+        data.tasks.push(newTask);
+        Storage.setData(data);
+        
+        // Notify employee
+        NotificationManager.create({
+            employeeId: taskData.employeeId,
+            title: 'Yeni tapşırıq',
+            message: `Yeni tapşırıq əlavə edildi: ${taskData.title}`,
+            type: 'task'
+        });
+        
+        return newTask;
+    },
+
+    update(id, taskData) {
+        const data = Storage.getData();
+        const index = data.tasks.findIndex(t => t.id === parseInt(id));
+        if (index !== -1) {
+            data.tasks[index] = { ...data.tasks[index], ...taskData };
+            Storage.setData(data);
+            return data.tasks[index];
+        }
+        return null;
+    },
+
+    updateStatus(taskId, status) {
+        const data = Storage.getData();
+        const task = data.tasks.find(t => t.id === parseInt(taskId));
+        if (task) {
+            task.status = status;
+            if (status === 'completed') {
+                task.completedAt = new Date().toISOString().split('T')[0];
+            }
+            Storage.setData(data);
+            
+            if (status === 'completed') {
+                NotificationManager.create({
+                    employeeId: 1, // Admin
+                    title: 'Tapşırıq tamamlandı',
+                    message: `${task.title} tapşırığı tamamlandı.`,
+                    type: 'task'
+                });
+            }
+            
+            return task;
+        }
+        return null;
+    },
+
+    delete(taskId) {
+        const data = Storage.getData();
+        data.tasks = data.tasks.filter(t => t.id !== parseInt(taskId));
+        Storage.setData(data);
+    },
+
+    getStats() {
+        const tasks = this.getAll();
+        
+        return {
+            pending: tasks.filter(t => t.status === 'pending').length,
+            inProgress: tasks.filter(t => t.status === 'in-progress').length,
+            completed: tasks.filter(t => t.status === 'completed').length,
+            totalCount: tasks.length
+        };
+    }
+};
+
+// ============================================
 // LEAVE MANAGER
 // ============================================
 const LeaveManager = {
@@ -902,8 +1537,29 @@ function showPage(pageName) {
         case 'employees':
             loadEmployeesTable();
             break;
+        case 'projects':
+            loadAdminProjects();
+            break;
+        case 'attendance':
+            loadAdminAttendance();
+            break;
+        case 'salary':
+            loadAdminSalaries();
+            break;
+        case 'advances':
+            loadAdminAdvances();
+            break;
+        case 'fines':
+            loadAdminFines();
+            break;
+        case 'tasks':
+            loadAdminTasks();
+            break;
         case 'leaves':
             loadAdminLeaves();
+            break;
+        case 'reports':
+            loadAdminReports();
             break;
     }
 }
@@ -1337,6 +1993,882 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ============================================
+// ADMIN ADVANCE MANAGEMENT
+// ============================================
+let selectedAdvanceId = null;
+
+function loadAdminAdvances() {
+    const statusFilter = document.getElementById('advance-status-filter')?.value || '';
+    const advances = AdvanceManager.getAll(statusFilter);
+    
+    // Update stats
+    const allAdvances = AdvanceManager.getAll();
+    const pendingAdvances = allAdvances.filter(a => a.status === 'pending');
+    const approvedAdvances = allAdvances.filter(a => a.status === 'approved');
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const monthlyTotal = allAdvances
+        .filter(a => a.requestedAt.startsWith(currentMonth) && (a.status === 'approved' || a.status === 'deducted'))
+        .reduce((sum, a) => sum + a.amount, 0);
+    
+    document.getElementById('pending-advances-count').textContent = pendingAdvances.length;
+    document.getElementById('approved-advances-count').textContent = approvedAdvances.length;
+    document.getElementById('total-advances-amount').textContent = UI.formatCurrency(monthlyTotal);
+    
+    // Update badge
+    const badge = document.getElementById('pending-advances-badge');
+    if (badge) {
+        badge.textContent = pendingAdvances.length;
+        badge.style.display = pendingAdvances.length > 0 ? 'inline-flex' : 'none';
+    }
+    
+    const tbody = document.getElementById('admin-advances-table');
+    if (!tbody) return;
+    
+    if (advances.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-cash-stack"></i>
+                        <p>Heç bir avans istəyi yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = advances.map(advance => {
+        const employee = Storage.getUserById(advance.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        
+        let actions = '';
+        if (advance.status === 'pending') {
+            actions = `
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-success" onclick="openAdvanceModal(${advance.id})" title="Təsdiqlə/Rədd et">
+                        <i class="bi bi-check-lg"></i> Bax
+                    </button>
+                </div>
+            `;
+        } else if (advance.status === 'approved') {
+            actions = `
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-primary" onclick="markAdvanceDeducted(${advance.id})" title="Çıxıldı kimi işarələ">
+                        <i class="bi bi-cash-stack"></i> Çıxıldı
+                    </button>
+                </div>
+            `;
+        } else {
+            actions = `<span class="text-muted">${advance.status === 'deducted' ? 'Çıxıldı' : 'Rədd edildi'}</span>`;
+        }
+        
+        return `
+            <tr>
+                <td>${UI.generateAvatar(employeeName, 32)} ${employeeName}</td>
+                <td><strong>${UI.formatCurrency(advance.amount)}</strong></td>
+                <td>${advance.reason}</td>
+                <td>${UI.formatDate(advance.requestedAt)}</td>
+                <td>${UI.getStatusBadge(advance.status)}</td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openAdvanceModal(advanceId) {
+    selectedAdvanceId = advanceId;
+    const advance = AdvanceManager.getAll().find(a => a.id === advanceId);
+    if (!advance) return;
+    
+    const employee = Storage.getUserById(advance.employeeId);
+    const employeeName = employee ? employee.fullName : 'Naməlum';
+    
+    document.getElementById('advance-details').innerHTML = `
+        <div class="info-list">
+            <div class="info-item">
+                <span class="label">İşçi:</span>
+                <span class="value">${employeeName}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">Məbləğ:</span>
+                <span class="value"><strong>${UI.formatCurrency(advance.amount)}</strong></span>
+            </div>
+            <div class="info-item">
+                <span class="label">Səbəb:</span>
+                <span class="value">${advance.reason}</span>
+            </div>
+            <div class="info-item">
+                <span class="label">İstək tarixi:</span>
+                <span class="value">${UI.formatDate(advance.requestedAt)}</span>
+            </div>
+            ${advance.requestedDate ? `
+            <div class="info-item">
+                <span class="label">İstənilən ödəniş:</span>
+                <span class="value">${UI.formatDate(advance.requestedDate)}</span>
+            </div>
+            ` : ''}
+        </div>
+    `;
+    
+    document.getElementById('advance-reject-reason-container').style.display = 'none';
+    document.getElementById('advance-reject-reason').value = '';
+    document.getElementById('advance-modal-footer').innerHTML = `
+        <button class="btn btn-secondary" onclick="closeAdvanceModal()">Bağla</button>
+        <button class="btn btn-danger" onclick="showAdvanceRejectForm()">Rədd et</button>
+        <button class="btn btn-success" onclick="approveAdvance()">Təsdiqlə</button>
+    `;
+    UI.openModal('advanceActionModal');
+}
+
+function closeAdvanceModal() {
+    UI.closeModal('advanceActionModal');
+    selectedAdvanceId = null;
+}
+
+function showAdvanceRejectForm() {
+    document.getElementById('advance-reject-reason-container').style.display = 'block';
+    document.getElementById('advance-modal-footer').innerHTML = `
+        <button class="btn btn-secondary" onclick="cancelAdvanceReject()">Geri</button>
+        <button class="btn btn-danger" onclick="confirmAdvanceReject()">Rədd et</button>
+    `;
+}
+
+function cancelAdvanceReject() {
+    document.getElementById('advance-reject-reason-container').style.display = 'none';
+    document.getElementById('advance-reject-reason').value = '';
+    document.getElementById('advance-modal-footer').innerHTML = `
+        <button class="btn btn-secondary" onclick="closeAdvanceModal()">Bağla</button>
+        <button class="btn btn-danger" onclick="showAdvanceRejectForm()">Rədd et</button>
+        <button class="btn btn-success" onclick="approveAdvance()">Təsdiqlə</button>
+    `;
+}
+
+function approveAdvance() {
+    if (!selectedAdvanceId) return;
+    
+    const user = Auth.getCurrentUser();
+    AdvanceManager.approve(selectedAdvanceId, user.id);
+    
+    UI.showSuccess('Avans təsdiqləndi!');
+    closeAdvanceModal();
+    loadAdminAdvances();
+}
+
+function confirmAdvanceReject() {
+    if (!selectedAdvanceId) return;
+    
+    const reason = document.getElementById('advance-reject-reason').value.trim();
+    if (!reason) {
+        UI.showError('Rədd səbəbini qeyd edin!');
+        return;
+    }
+    
+    AdvanceManager.reject(selectedAdvanceId, reason);
+    
+    UI.showSuccess('Avans rədd edildi!');
+    closeAdvanceModal();
+    loadAdminAdvances();
+}
+
+function markAdvanceDeducted(advanceId) {
+    UI.confirm('Bu avansı maaşdan çıxıldı kimi işarələmək istədiyinizə əminsiniz?', () => {
+        AdvanceManager.markAsDeducted(advanceId);
+        UI.showSuccess('Avans çıxıldı kimi işarələndi!');
+        loadAdminAdvances();
+    });
+}
+
+// Setup advance filter
+document.addEventListener('DOMContentLoaded', function() {
+    const advanceFilter = document.getElementById('advance-status-filter');
+    if (advanceFilter) {
+        advanceFilter.addEventListener('change', loadAdminAdvances);
+    }
+});
+
+// ============================================
+// ADMIN PROJECT MANAGEMENT
+// ============================================
+let editingProjectId = null;
+
+function loadAdminProjects() {
+    const statusFilter = document.getElementById('project-status-filter')?.value || '';
+    const projects = ProjectManager.getAll(statusFilter);
+    
+    // Update stats
+    const stats = ProjectManager.getStats();
+    document.getElementById('total-projects-count').textContent = stats.total;
+    document.getElementById('active-projects-count').textContent = stats.active;
+    document.getElementById('project-employees-count').textContent = stats.employeeCount;
+    
+    const tbody = document.getElementById('projects-table');
+    if (!tbody) return;
+    
+    if (projects.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-building"></i>
+                        <p>Heç bir obyekt yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = projects.map(project => {
+        const employeeCount = ProjectManager.getEmployeeCount(project.id);
+        
+        return `
+            <tr>
+                <td>${project.id}</td>
+                <td><strong>${project.name}</strong></td>
+                <td>${project.location}</td>
+                <td>${UI.formatDate(project.startDate)}</td>
+                <td>${employeeCount} işçi</td>
+                <td>${UI.getStatusBadge(project.status)}</td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-primary" onclick="editProject(${project.id})" title="Redaktə">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteProject(${project.id})" title="Sil">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openProjectModal() {
+    editingProjectId = null;
+    document.getElementById('project-modal-title').textContent = 'Yeni Obyekt Əlavə Et';
+    document.getElementById('projectForm').reset();
+    document.getElementById('project-start-date').value = new Date().toISOString().split('T')[0];
+    UI.openModal('projectModal');
+}
+
+function closeProjectModal() {
+    UI.closeModal('projectModal');
+    editingProjectId = null;
+}
+
+function editProject(id) {
+    const project = ProjectManager.getById(id);
+    if (!project) return;
+    
+    editingProjectId = id;
+    document.getElementById('project-modal-title').textContent = 'Obyekti Redaktə Et';
+    
+    document.getElementById('project-name').value = project.name;
+    document.getElementById('project-location').value = project.location;
+    document.getElementById('project-start-date').value = project.startDate;
+    document.getElementById('project-status').value = project.status;
+    
+    UI.openModal('projectModal');
+}
+
+function saveProject() {
+    const projectData = {
+        name: document.getElementById('project-name').value.trim(),
+        location: document.getElementById('project-location').value.trim(),
+        startDate: document.getElementById('project-start-date').value,
+        status: document.getElementById('project-status').value
+    };
+    
+    if (!projectData.name || !projectData.location) {
+        UI.showError('Zəhmət olmasa bütün vacib sahələri doldurun!');
+        return;
+    }
+    
+    if (editingProjectId) {
+        ProjectManager.update(editingProjectId, projectData);
+        UI.showSuccess('Obyekt yeniləndi!');
+    } else {
+        ProjectManager.create(projectData);
+        UI.showSuccess('Yeni obyekt əlavə edildi!');
+    }
+    
+    closeProjectModal();
+    loadAdminProjects();
+}
+
+function deleteProject(id) {
+    UI.confirm('Bu obyekti silmək istədiyinizə əminsiniz?', () => {
+        ProjectManager.delete(id);
+        UI.showSuccess('Obyekt silindi!');
+        loadAdminProjects();
+    });
+}
+
+// Setup project filter
+document.addEventListener('DOMContentLoaded', function() {
+    const projectFilter = document.getElementById('project-status-filter');
+    if (projectFilter) {
+        projectFilter.addEventListener('change', loadAdminProjects);
+    }
+});
+
+// ============================================
+// ADMIN ATTENDANCE MANAGEMENT
+// ============================================
+function loadAdminAttendance() {
+    const dateFilter = document.getElementById('attendance-date')?.value || new Date().toISOString().split('T')[0];
+    const statusFilter = document.getElementById('attendance-status-filter')?.value || '';
+    
+    // Update stats for today
+    const todayStats = AttendanceManager.getTodayStats();
+    document.getElementById('today-present-count').textContent = todayStats.present;
+    document.getElementById('today-late-count').textContent = todayStats.late;
+    document.getElementById('today-absent-count').textContent = todayStats.absent;
+    
+    // Set default date if not set
+    const dateInput = document.getElementById('attendance-date');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+    
+    const records = AttendanceManager.getAll(dateFilter, statusFilter);
+    const tbody = document.getElementById('attendance-table');
+    
+    if (!tbody) return;
+    
+    if (records.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <p>Bu tarixdə davamiyyət qeydi yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = records.map(record => {
+        const employee = Storage.getUserById(record.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        
+        return `
+            <tr>
+                <td>${UI.generateAvatar(employeeName, 32)} ${employeeName}</td>
+                <td>${UI.formatDate(record.date)}</td>
+                <td>${record.checkIn || '-'}</td>
+                <td>${record.checkOut || '-'}</td>
+                <td>${UI.getStatusBadge(record.status)}</td>
+                <td>${record.notes || '-'}</td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-primary" onclick="editAttendance(${record.id})" title="Redaktə">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAttendance(${record.id})" title="Sil">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function editAttendance(id) {
+    // TODO: Implement attendance edit modal
+    UI.showNotification('Davamiyyət redaktəsi tezliklə əlavə ediləcək', 'info');
+}
+
+function deleteAttendance(id) {
+    UI.confirm('Bu davamiyyət qeydini silmək istədiyinizə əminsiniz?', () => {
+        AttendanceManager.delete(id);
+        UI.showSuccess('Davamiyyət qeydi silindi!');
+        loadAdminAttendance();
+    });
+}
+
+// Setup attendance filters
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFilter = document.getElementById('attendance-date');
+    const statusFilter = document.getElementById('attendance-status-filter');
+    
+    if (dateFilter) {
+        dateFilter.addEventListener('change', loadAdminAttendance);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', loadAdminAttendance);
+    }
+});
+
+// ============================================
+// ADMIN SALARY MANAGEMENT
+// ============================================
+function loadAdminSalaries() {
+    const monthFilter = document.getElementById('salary-month-filter')?.value || '2025-03';
+    const statusFilter = document.getElementById('salary-status-filter')?.value || '';
+    
+    // Update stats
+    const stats = SalaryManager.getStats(monthFilter);
+    document.getElementById('total-salary-fund').textContent = UI.formatCurrency(stats.totalFund);
+    document.getElementById('pending-salary-count').textContent = stats.pending;
+    document.getElementById('paid-salary-count').textContent = stats.paid;
+    
+    const salaries = SalaryManager.getAll(monthFilter, statusFilter);
+    const tbody = document.getElementById('salary-table');
+    
+    if (!tbody) return;
+    
+    if (salaries.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-cash-stack"></i>
+                        <p>Bu ay üçün maaş hesablanmayıb</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = salaries.map(salary => {
+        const employee = Storage.getUserById(salary.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        
+        let actions = '';
+        if (salary.status === 'pending') {
+            actions = `
+                <button class="btn btn-sm btn-success" onclick="markSalaryPaid(${salary.id})" title="Ödəndi kimi işarələ">
+                    <i class="bi bi-check-lg"></i> Ödə
+                </button>
+            `;
+        } else {
+            actions = `<span class="text-muted">Ödənilib</span>`;
+        }
+        
+        return `
+            <tr>
+                <td>${UI.generateAvatar(employeeName, 32)} ${employeeName}</td>
+                <td>${salary.month}</td>
+                <td>${UI.formatCurrency(salary.baseSalary)}</td>
+                <td class="text-success">+${UI.formatCurrency(salary.bonus)}</td>
+                <td class="text-success">+${UI.formatCurrency(salary.overtime)}</td>
+                <td class="text-danger">-${UI.formatCurrency(salary.advance)}</td>
+                <td class="text-danger">-${UI.formatCurrency(salary.fine)}</td>
+                <td><strong>${UI.formatCurrency(salary.netSalary)}</strong></td>
+                <td>${UI.getStatusBadge(salary.status)}</td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function calculateMonthlySalary() {
+    const month = document.getElementById('salary-month-filter')?.value || '2025-03';
+    const employees = EmployeeManager.getAll({ status: 'active' });
+    
+    let count = 0;
+    employees.forEach(employee => {
+        // Check if salary already calculated for this month
+        const existing = SalaryManager.getAll(month).find(s => s.employeeId === employee.id);
+        if (!existing) {
+            const salaryData = SalaryManager.calculateSalary(employee.id, month);
+            if (salaryData) {
+                SalaryManager.create(salaryData);
+                count++;
+            }
+        }
+    });
+    
+    if (count > 0) {
+        UI.showSuccess(`${count} işçi üçün maaş hesablandı!`);
+    } else {
+        UI.showNotification('Bütün işçilər üçün maaş artıq hesablanıb', 'info');
+    }
+    
+    loadAdminSalaries();
+}
+
+function markSalaryPaid(salaryId) {
+    SalaryManager.markAsPaid(salaryId);
+    UI.showSuccess('Maaş ödəndi kimi işarələndi!');
+    loadAdminSalaries();
+}
+
+// Setup salary filters
+document.addEventListener('DOMContentLoaded', function() {
+    const monthFilter = document.getElementById('salary-month-filter');
+    const statusFilter = document.getElementById('salary-status-filter');
+    
+    if (monthFilter) {
+        monthFilter.addEventListener('change', loadAdminSalaries);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', loadAdminSalaries);
+    }
+});
+
+// ============================================
+// ADMIN FINE MANAGEMENT
+// ============================================
+function loadAdminFines() {
+    const statusFilter = document.getElementById('fine-status-filter')?.value || '';
+    const fines = FineManager.getAll(statusFilter);
+    
+    // Update stats
+    const stats = FineManager.getStats();
+    document.getElementById('active-fines-count').textContent = stats.active;
+    document.getElementById('monthly-fines-amount').textContent = UI.formatCurrency(stats.monthlyAmount);
+    document.getElementById('deducted-fines-count').textContent = stats.deducted;
+    
+    const tbody = document.getElementById('fines-table');
+    if (!tbody) return;
+    
+    if (fines.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>Heç bir cərimə yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = fines.map(fine => {
+        const employee = Storage.getUserById(fine.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        
+        let actions = '';
+        if (fine.status === 'active') {
+            actions = `
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-primary" onclick="markFineDeducted(${fine.id})" title="Çıxıldı kimi işarələ">
+                        <i class="bi bi-cash-stack"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteFine(${fine.id})" title="Sil">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            actions = `<span class="text-muted">Çıxıldı</span>`;
+        }
+        
+        return `
+            <tr>
+                <td>${UI.generateAvatar(employeeName, 32)} ${employeeName}</td>
+                <td class="text-danger"><strong>${UI.formatCurrency(fine.amount)}</strong></td>
+                <td>${fine.reason}</td>
+                <td>${UI.formatDate(fine.date)}</td>
+                <td>${UI.getStatusBadge(fine.status)}</td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openFineModal() {
+    document.getElementById('fineForm').reset();
+    document.getElementById('fine-date').value = new Date().toISOString().split('T')[0];
+    
+    // Load employees dropdown
+    const employees = EmployeeManager.getAll();
+    const select = document.getElementById('fine-employee');
+    select.innerHTML = '<option value="">Seçin</option>' + 
+        employees.map(e => `<option value="${e.id}">${e.fullName}</option>`).join('');
+    
+    UI.openModal('fineModal');
+}
+
+function closeFineModal() {
+    UI.closeModal('fineModal');
+}
+
+function saveFine() {
+    const fineData = {
+        employeeId: parseInt(document.getElementById('fine-employee').value),
+        amount: parseFloat(document.getElementById('fine-amount').value),
+        date: document.getElementById('fine-date').value,
+        reason: document.getElementById('fine-reason').value.trim()
+    };
+    
+    if (!fineData.employeeId || !fineData.amount || !fineData.reason) {
+        UI.showError('Zəhmət olmasa bütün vacib sahələri doldurun!');
+        return;
+    }
+    
+    FineManager.create(fineData);
+    UI.showSuccess('Cərimə əlavə edildi!');
+    closeFineModal();
+    loadAdminFines();
+}
+
+function markFineDeducted(fineId) {
+    FineManager.markAsDeducted(fineId);
+    UI.showSuccess('Cərimə çıxıldı kimi işarələndi!');
+    loadAdminFines();
+}
+
+function deleteFine(fineId) {
+    UI.confirm('Bu cəriməni silmək istədiyinizə əminsiniz?', () => {
+        FineManager.delete(fineId);
+        UI.showSuccess('Cərimə silindi!');
+        loadAdminFines();
+    });
+}
+
+// Setup fine filter
+document.addEventListener('DOMContentLoaded', function() {
+    const fineFilter = document.getElementById('fine-status-filter');
+    if (fineFilter) {
+        fineFilter.addEventListener('change', loadAdminFines);
+    }
+});
+
+// ============================================
+// ADMIN TASK MANAGEMENT
+// ============================================
+function loadAdminTasks() {
+    const statusFilter = document.getElementById('task-status-filter')?.value || '';
+    const priorityFilter = document.getElementById('task-priority-filter')?.value || '';
+    
+    // Update stats
+    const stats = TaskManager.getStats();
+    document.getElementById('pending-tasks-count').textContent = stats.pending;
+    document.getElementById('inprogress-tasks-count').textContent = stats.inProgress;
+    document.getElementById('completed-tasks-count').textContent = stats.completed;
+    
+    const tasks = TaskManager.getAll(statusFilter, priorityFilter);
+    const tbody = document.getElementById('tasks-table');
+    
+    if (!tbody) return;
+    
+    if (tasks.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-list-task"></i>
+                        <p>Heç bir tapşırıq yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = tasks.map(task => {
+        const employee = Storage.getUserById(task.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        const project = ProjectManager.getById(task.projectId);
+        const projectName = project ? project.name : '-';
+        
+        const priorityLabels = { high: 'Yüksək', medium: 'Orta', low: 'Aşağı' };
+        const priorityClass = { high: 'text-danger', medium: 'text-warning', low: 'text-success' };
+        
+        let actions = `
+            <div class="btn-group">
+                <button class="btn btn-sm btn-primary" onclick="editTask(${task.id})" title="Redaktə">
+                    <i class="bi bi-pencil"></i>
+                </button>
+        `;
+        
+        if (task.status !== 'completed') {
+            actions += `
+                <button class="btn btn-sm btn-success" onclick="markTaskCompleted(${task.id})" title="Tamamlandı">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+            `;
+        }
+        
+        actions += `
+                <button class="btn btn-sm btn-danger" onclick="deleteTask(${task.id})" title="Sil">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+        
+        return `
+            <tr>
+                <td><strong>${task.title}</strong></td>
+                <td>${UI.generateAvatar(employeeName, 32)} ${employeeName}</td>
+                <td>${projectName}</td>
+                <td>${UI.formatDate(task.dueDate)}</td>
+                <td class="${priorityClass[task.priority]}">${priorityLabels[task.priority]}</td>
+                <td>${UI.getStatusBadge(task.status)}</td>
+                <td>${actions}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function openTaskModal() {
+    document.getElementById('taskForm').reset();
+    document.getElementById('task-due-date').value = new Date().toISOString().split('T')[0];
+    
+    // Load employees dropdown
+    const employees = EmployeeManager.getAll();
+    const employeeSelect = document.getElementById('task-employee');
+    employeeSelect.innerHTML = '<option value="">Seçin</option>' + 
+        employees.map(e => `<option value="${e.id}">${e.fullName}</option>`).join('');
+    
+    // Load projects dropdown
+    const projects = ProjectManager.getAll();
+    const projectSelect = document.getElementById('task-project');
+    projectSelect.innerHTML = '<option value="">Seçin</option>' + 
+        projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    
+    UI.openModal('taskModal');
+}
+
+function closeTaskModal() {
+    UI.closeModal('taskModal');
+}
+
+function saveTask() {
+    const taskData = {
+        title: document.getElementById('task-title').value.trim(),
+        description: document.getElementById('task-description').value.trim(),
+        employeeId: parseInt(document.getElementById('task-employee').value),
+        projectId: parseInt(document.getElementById('task-project').value) || null,
+        dueDate: document.getElementById('task-due-date').value,
+        priority: document.getElementById('task-priority').value,
+        createdBy: Auth.getCurrentUser()?.id
+    };
+    
+    if (!taskData.title || !taskData.employeeId || !taskData.dueDate) {
+        UI.showError('Zəhmət olmasa bütün vacib sahələri doldurun!');
+        return;
+    }
+    
+    TaskManager.create(taskData);
+    UI.showSuccess('Tapşırıq əlavə edildi!');
+    closeTaskModal();
+    loadAdminTasks();
+}
+
+function editTask(taskId) {
+    // TODO: Implement task edit
+    UI.showNotification('Tapşırıq redaktəsi tezliklə əlavə ediləcək', 'info');
+}
+
+function markTaskCompleted(taskId) {
+    TaskManager.updateStatus(taskId, 'completed');
+    UI.showSuccess('Tapşırıq tamamlandı kimi işarələndi!');
+    loadAdminTasks();
+}
+
+function deleteTask(taskId) {
+    UI.confirm('Bu tapşırığı silmək istədiyinizə əminsiniz?', () => {
+        TaskManager.delete(taskId);
+        UI.showSuccess('Tapşırıq silindi!');
+        loadAdminTasks();
+    });
+}
+
+// Setup task filters
+document.addEventListener('DOMContentLoaded', function() {
+    const taskStatusFilter = document.getElementById('task-status-filter');
+    const taskPriorityFilter = document.getElementById('task-priority-filter');
+    
+    if (taskStatusFilter) {
+        taskStatusFilter.addEventListener('change', loadAdminTasks);
+    }
+    if (taskPriorityFilter) {
+        taskPriorityFilter.addEventListener('change', loadAdminTasks);
+    }
+});
+
+// ============================================
+// ADMIN REPORTS
+// ============================================
+function loadAdminReports() {
+    // General stats
+    const employeeStats = EmployeeManager.getStats();
+    const projectStats = ProjectManager.getStats();
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const salaryStats = SalaryManager.getStats(currentMonth);
+    const advanceStats = AdvanceManager.getAll().filter(a => a.requestedAt.startsWith(currentMonth));
+    const fineStats = FineManager.getStats();
+    
+    document.getElementById('report-total-employees').textContent = employeeStats.total;
+    document.getElementById('report-active-employees').textContent = employeeStats.active;
+    document.getElementById('report-active-projects').textContent = projectStats.active;
+    document.getElementById('report-monthly-salary').textContent = UI.formatCurrency(salaryStats.totalFund);
+    document.getElementById('report-monthly-advances').textContent = UI.formatCurrency(
+        advanceStats.reduce((sum, a) => sum + a.amount, 0)
+    );
+    document.getElementById('report-monthly-fines').textContent = UI.formatCurrency(fineStats.monthlyAmount);
+    
+    // Projects breakdown
+    const projectsList = document.getElementById('report-projects-list');
+    if (projectsList) {
+        const projects = ProjectManager.getAll();
+        projectsList.innerHTML = projects.map(project => {
+            const employeeCount = ProjectManager.getEmployeeCount(project.id);
+            return `
+                <div class="report-item">
+                    <span class="name">${project.name}</span>
+                    <span class="count">${employeeCount} işçi</span>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Attendance report
+    generateReport();
+}
+
+function generateReport() {
+    const month = document.getElementById('report-month')?.value || '2025-03';
+    const employees = EmployeeManager.getAll();
+    const tbody = document.getElementById('report-attendance-table');
+    
+    if (!tbody) return;
+    
+    tbody.innerHTML = employees.map(employee => {
+        const stats = AttendanceManager.getMonthlyStats(employee.id, month);
+        const totalDays = stats.present + stats.late + stats.absent + stats.excused;
+        const attendanceRate = totalDays > 0 ? Math.round((stats.present / totalDays) * 100) : 0;
+        
+        return `
+            <tr>
+                <td>${UI.generateAvatar(employee.fullName, 32)} ${employee.fullName}</td>
+                <td>${employee.project || '-'}</td>
+                <td>${stats.present}</td>
+                <td>${stats.late}</td>
+                <td>${stats.absent}</td>
+                <td>${stats.excused}</td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${attendanceRate}%; background: ${attendanceRate >= 90 ? '#10b981' : attendanceRate >= 70 ? '#f59e0b' : '#ef4444'}"></div>
+                        <span>${attendanceRate}%</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Setup report month filter
+document.addEventListener('DOMContentLoaded', function() {
+    const reportMonth = document.getElementById('report-month');
+    if (reportMonth) {
+        reportMonth.addEventListener('change', generateReport);
+    }
+});
+
+// ============================================
 // EMPLOYEE DASHBOARD INITIALIZATION
 // ============================================
 function initEmployeeDashboard() {
@@ -1351,6 +2883,7 @@ function initEmployeeDashboard() {
     
     // Setup forms
     setupLeaveForm();
+    setupAdvanceForm();
     setupPasswordForm();
     
     // Load data
@@ -1435,6 +2968,10 @@ function showEmployeePage(pageName) {
     if (pageName === 'leaves') {
         loadLeaveHistory();
         updateLeaveBalance();
+    }
+    if (pageName === 'advances') {
+        loadAdvanceHistory();
+        updateAdvanceStats();
     }
 }
 
@@ -1644,6 +3181,136 @@ function updateLeaveBalance() {
     if (annualEl) annualEl.textContent = user.leaveBalance.annual;
     if (usedEl) usedEl.textContent = user.leaveBalance.used;
     if (remainingEl) remainingEl.textContent = user.leaveBalance.remaining;
+}
+
+// ============================================
+// ADVANCE FORM SETUP
+// ============================================
+function setupAdvanceForm() {
+    const advanceForm = document.getElementById('advanceForm');
+    if (!advanceForm) return;
+
+    // Set min date to today
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('advance-date');
+    if (dateInput) dateInput.min = today;
+
+    // Form submit
+    advanceForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const amount = parseFloat(document.getElementById('advance-amount').value);
+        const reason = document.getElementById('advance-reason').value.trim();
+        const requestedDate = document.getElementById('advance-date')?.value || null;
+
+        // Validation
+        if (!amount || amount < 1) {
+            UI.showError('Məbləği düzgün daxil edin!');
+            return;
+        }
+        
+        if (!reason) {
+            UI.showError('Səbəbi qeyd edin!');
+            return;
+        }
+
+        // Create advance request
+        const result = AdvanceManager.create({
+            amount: amount,
+            reason: reason,
+            requestedDate: requestedDate
+        });
+        
+        if (result.success) {
+            UI.showSuccess('Avans istəyi uğurla göndərildi!');
+            
+            // Reset form
+            advanceForm.reset();
+            
+            // Refresh history and stats
+            loadAdvanceHistory();
+            updateAdvanceStats();
+            
+            // Update badge
+            updateAdvanceBadge();
+        } else {
+            UI.showError(result.message);
+        }
+    });
+}
+
+function loadAdvanceHistory() {
+    const user = Auth.getCurrentUser();
+    if (!user) return;
+    
+    const advances = AdvanceManager.getForEmployee(user.id);
+    const tbody = document.getElementById('advances-table');
+    
+    if (!tbody) return;
+    
+    if (advances.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-cash-stack"></i>
+                        <p>Heç bir avans qeydi yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = advances.map(advance => {
+        let note = '-';
+        if (advance.status === 'rejected' && advance.rejectionReason) {
+            note = advance.rejectionReason;
+        } else if (advance.status === 'deducted' && advance.deductedAt) {
+            note = `Çıxılma tarixi: ${UI.formatDate(advance.deductedAt)}`;
+        } else if (advance.status === 'approved' && advance.approvedAt) {
+            note = `Təsdiqlənmə: ${UI.formatDate(advance.approvedAt)}`;
+        }
+        
+        return `
+            <tr>
+                <td>${UI.formatDate(advance.requestedAt)}</td>
+                <td><strong>${UI.formatCurrency(advance.amount)}</strong></td>
+                <td>${advance.reason}</td>
+                <td>${UI.getStatusBadge(advance.status)}</td>
+                <td><small class="text-muted">${note}</small></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function updateAdvanceStats() {
+    const user = Auth.getCurrentUser();
+    if (!user) return;
+    
+    const stats = AdvanceManager.getStats(user.id);
+    
+    const totalYearEl = document.getElementById('total-advances-year');
+    const pendingEl = document.getElementById('pending-advances');
+    const approvedEl = document.getElementById('approved-advances');
+    
+    if (totalYearEl) totalYearEl.textContent = stats.totalYear.toFixed(0);
+    if (pendingEl) pendingEl.textContent = stats.pending.toFixed(0);
+    if (approvedEl) approvedEl.textContent = stats.approved.toFixed(0);
+}
+
+function updateAdvanceBadge() {
+    const user = Auth.getCurrentUser();
+    if (!user) return;
+    
+    const advances = AdvanceManager.getForEmployee(user.id);
+    const pendingCount = advances.filter(a => a.status === 'pending').length;
+    
+    const badge = document.getElementById('advance-badge');
+    if (badge) {
+        badge.textContent = pendingCount;
+        badge.style.display = pendingCount > 0 ? 'inline-flex' : 'none';
+    }
 }
 
 // ============================================

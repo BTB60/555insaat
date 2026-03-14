@@ -2488,3 +2488,130 @@ textarea.form-control {
     font-size: 13px;
     font-weight: 400;
 }
+
+/* ============================================
+   REPORTS STYLES
+   ============================================ */
+.report-stats {
+    padding: var(--space-6);
+}
+
+.report-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.report-stat-item:last-child {
+    border-bottom: none;
+}
+
+.report-stat-item .label {
+    color: var(--gray-600);
+    font-size: 14px;
+}
+
+.report-stat-item .value {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--gray-800);
+}
+
+.report-list {
+    padding: var(--space-4);
+}
+
+.report-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    background: var(--gray-50);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-2);
+}
+
+.report-item .name {
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+.report-item .count {
+    font-size: 13px;
+    color: var(--gray-500);
+    background: var(--white);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+}
+
+/* Progress Bar */
+.progress-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 120px;
+}
+
+.progress-bar .progress {
+    height: 8px;
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.progress-bar span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+    min-width: 35px;
+}
+
+/* Page Actions */
+.page-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-6);
+}
+
+/* Form text muted */
+.form-text {
+    font-size: 12px;
+    margin-top: var(--space-1);
+}
+
+.form-text.text-muted {
+    color: var(--gray-500);
+}
+
+/* Alert styles */
+.alert {
+    padding: var(--space-4);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+}
+
+.alert.alert-info {
+    background: var(--info-light);
+    color: var(--info);
+    border: 1px solid var(--info);
+}
+
+.alert.alert-success {
+    background: var(--success-light);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.alert.alert-warning {
+    background: var(--warning-light);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+}
+
+.alert i {
+    font-size: 18px;
+    flex-shrink: 0;
+}

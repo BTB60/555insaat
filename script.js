@@ -1589,16 +1589,258 @@ function updatePageTitle(pageName) {
 
 function loadDashboardData() {
     const stats = EmployeeManager.getStats();
+    const projectStats = ProjectManager.getStats();
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const salaryStats = SalaryManager.getStats(currentMonth);
+    const fineStats = FineManager.getStats();
+    const todayStats = AttendanceManager.getTodayStats();
     
     // Update stat cards
     const totalEl = document.getElementById('total-employees');
     const activeEl = document.getElementById('active-employees');
+    const todayAttendanceEl = document.getElementById('today-attendance');
+    const activeProjectsEl = document.getElementById('active-projects');
+    const salaryFundEl = document.getElementById('monthly-salary-fund');
+    const monthlyFinesEl = document.getElementById('monthly-fines');
     
     if (totalEl) totalEl.textContent = stats.total;
     if (activeEl) activeEl.textContent = stats.active;
+    if (todayAttendanceEl) todayAttendanceEl.textContent = todayStats.present;
+    if (activeProjectsEl) activeProjectsEl.textContent = projectStats.active;
+    if (salaryFundEl) salaryFundEl.textContent = UI.formatCurrency(salaryStats.totalFund);
+    if (monthlyFinesEl) monthlyFinesEl.textContent = UI.formatCurrency(fineStats.monthlyAmount);
     
     // Load recent employees
     loadRecentEmployees();
+    
+    // Load recent activities
+    loadRecentTasks();
+    loadRecentFines();
+    loadRecentAdvances();
+    
+    // Initialize charts
+    initDashboardCharts();
+}
+
+// Dashboard Charts
+let attendanceChart, projectsChart, salaryChart;
+
+function initDashboardCharts() {
+    initAttendanceChart();
+    initProjectsChart();
+    initSalaryChart();
+}
+
+function initAttendanceChart() {
+    const ctx = document.getElementById('attendanceChart');
+    if (!ctx) return;
+    
+    // Get last 7 days attendance data
+    const labels = [];
+    const presentData = [];
+    const lateData = [];
+    const absentData = [];
+    
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        labels.push(date.toLocaleDateString('az-AZ', { weekday: 'short' }));
+        
+        const records = AttendanceManager.getAll(dateStr);
+        presentData.push(records.filter(r => r.status === 'present').length);
+        lateData.push(records.filter(r => r.status === 'late').length);
+        absentData.push(records.filter(r => r.status === 'absent').length);
+    }
+    
+    if (attendanceChart) attendanceChart.destroy();
+    
+    attendanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'İşdə',
+                    data: presentData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Gecikmə',
+                    data: lateData,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'İznsiz',
+                    data: absentData,
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+function initProjectsChart() {
+    const ctx = document.getElementById('projectsChart');
+    if (!ctx) return;
+    
+    const projects = ProjectManager.getAll();
+    const labels = projects.map(p => p.name);
+    const data = projects.map(p => ProjectManager.getEmployeeCount(p.id));
+    const colors = ['#ff8c42', '#102542', '#10b981', '#3b82f6', '#8b5cf6', '#f59e0b'];
+    
+    if (projectsChart) projectsChart.destroy();
+    
+    projectsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors.slice(0, projects.length),
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function initSalaryChart() {
+    const ctx = document.getElementById('salaryChart');
+    if (!ctx) return;
+    
+    // Get last 6 months salary data
+    const labels = [];
+    const salaryData = [];
+    
+    for (let i = 5; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i);
+        const monthStr = date.toISOString().slice(0, 7);
+        labels.push(date.toLocaleDateString('az-AZ', { month: 'short' }));
+        
+        const stats = SalaryManager.getStats(monthStr);
+        salaryData.push(stats.totalFund);
+    }
+    
+    if (salaryChart) salaryChart.destroy();
+    
+    salaryChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Maaş Fondu (₼)',
+                data: salaryData,
+                backgroundColor: '#102542',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' ₼';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function loadRecentTasks() {
+    const tasks = TaskManager.getAll().slice(0, 5);
+    const list = document.getElementById('recent-tasks');
+    if (!list) return;
+    
+    if (tasks.length === 0) {
+        list.innerHTML = '<li class="text-muted">Tapşırıq yoxdur</li>';
+        return;
+    }
+    
+    list.innerHTML = tasks.map(task => {
+        const employee = Storage.getUserById(task.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        return `<li><span class="text-primary">${employeeName}</span> - ${task.title}</li>`;
+    }).join('');
+}
+
+function loadRecentFines() {
+    const fines = FineManager.getAll().slice(0, 5);
+    const list = document.getElementById('recent-fines');
+    if (!list) return;
+    
+    if (fines.length === 0) {
+        list.innerHTML = '<li class="text-muted">Cərimə yoxdur</li>';
+        return;
+    }
+    
+    list.innerHTML = fines.map(fine => {
+        const employee = Storage.getUserById(fine.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        return `<li><span class="text-danger">${employeeName}</span> - ${fine.reason} - ${fine.amount} ₼</li>`;
+    }).join('');
+}
+
+function loadRecentAdvances() {
+    const advances = AdvanceManager.getAll().slice(0, 5);
+    const list = document.getElementById('recent-advances');
+    if (!list) return;
+    
+    if (advances.length === 0) {
+        list.innerHTML = '<li class="text-muted">Avans yoxdur</li>';
+        return;
+    }
+    
+    list.innerHTML = advances.map(advance => {
+        const employee = Storage.getUserById(advance.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        return `<li><span class="text-primary">${employeeName}</span> - ${advance.amount} ₼</li>`;
+    }).join('');
 }
 
 function loadRecentEmployees() {
@@ -3400,6 +3642,251 @@ window.addEventListener('click', function(event) {
         modal.classList.remove('active');
         document.body.style.overflow = '';
     }
+    
+    // Close notification panel when clicking outside
+    const notificationPanel = document.getElementById('notification-panel');
+    const notificationBtn = document.querySelector('.notification-dropdown .btn-icon');
+    if (notificationPanel && !notificationPanel.contains(event.target) && 
+        notificationBtn && !notificationBtn.contains(event.target)) {
+        notificationPanel.classList.remove('active');
+    }
+});
+
+// ============================================
+// NOTIFICATION SYSTEM
+// ============================================
+function toggleNotificationPanel() {
+    const panel = document.getElementById('notification-panel');
+    if (panel) {
+        panel.classList.toggle('active');
+        if (panel.classList.contains('active')) {
+            loadNotifications();
+        }
+    }
+}
+
+function loadNotifications() {
+    const data = Storage.getData();
+    const notifications = data.notifications ? data.notifications.slice().reverse().slice(0, 20) : [];
+    const list = document.getElementById('notification-list');
+    const badge = document.getElementById('notification-badge');
+    
+    if (!list) return;
+    
+    // Update badge
+    const unreadCount = notifications.filter(n => !n.read).length;
+    if (badge) {
+        badge.textContent = unreadCount;
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+    
+    if (notifications.length === 0) {
+        list.innerHTML = `
+            <div class="notification-empty">
+                <i class="bi bi-bell-slash"></i>
+                <p>Bildiriş yoxdur</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const iconMap = {
+        salary: { icon: 'bi-cash-stack', class: 'salary' },
+        fine: { icon: 'bi-exclamation-triangle', class: 'fine' },
+        task: { icon: 'bi-list-task', class: 'task' },
+        leave: { icon: 'bi-calendar-plus', class: 'leave' },
+        advance: { icon: 'bi-cash', class: 'advance' },
+        system: { icon: 'bi-info-circle', class: 'task' }
+    };
+    
+    list.innerHTML = notifications.map(notification => {
+        const iconConfig = iconMap[notification.type] || iconMap.system;
+        const employee = notification.employeeId ? Storage.getUserById(notification.employeeId) : null;
+        
+        return `
+            <div class="notification-item ${notification.read ? '' : 'unread'}" onclick="markNotificationAsRead(${notification.id})">
+                <div class="notification-icon ${iconConfig.class}">
+                    <i class="bi ${iconConfig.icon}"></i>
+                </div>
+                <div class="notification-content">
+                    <h5>${notification.title}</h5>
+                    <p>${notification.message}</p>
+                    <small>${UI.formatDate(notification.date)}</small>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function markNotificationAsRead(notificationId) {
+    NotificationManager.markAsRead(notificationId);
+    loadNotifications();
+}
+
+function markAllNotificationsAsRead() {
+    const data = Storage.getData();
+    if (data.notifications) {
+        data.notifications.forEach(n => n.read = true);
+        Storage.setData(data);
+    }
+    loadNotifications();
+}
+
+// Update notification badge on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadNotifications();
+    initDarkMode();
+});
+
+// ============================================
+// DARK MODE
+// ============================================
+function initDarkMode() {
+    const isDarkMode = localStorage.getItem('555insaat_darkmode') === 'true';
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon(true);
+    }
+}
+
+function toggleDarkMode() {
+    const isDarkMode = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('555insaat_darkmode', isDarkMode);
+    updateDarkModeIcon(isDarkMode);
+}
+
+function updateDarkModeIcon(isDarkMode) {
+    const icon = document.getElementById('dark-mode-icon');
+    if (icon) {
+        icon.className = isDarkMode ? 'bi bi-sun' : 'bi bi-moon';
+    }
+}
+
+// ============================================
+// EXPORT FUNCTIONS
+// ============================================
+function exportSalaryToExcel() {
+    const month = document.getElementById('salary-month-filter')?.value || '2025-03';
+    const salaries = SalaryManager.getAll(month);
+    
+    if (salaries.length === 0) {
+        UI.showError('İxrac ediləcək məlumat yoxdur!');
+        return;
+    }
+    
+    // Create CSV content
+    let csv = '\uFEFF'; // BOM for UTF-8
+    csv += 'İşçi,Ay,Baza Maaş,Bonus,Əlavə Saat,Avans,Cərimə,Yekun,Status\n';
+    
+    salaries.forEach(salary => {
+        const employee = Storage.getUserById(salary.employeeId);
+        const employeeName = employee ? employee.fullName : 'Naməlum';
+        const status = salary.status === 'paid' ? 'Ödənilib' : 'Gözləyir';
+        
+        csv += `"${employeeName}","${salary.month}",${salary.baseSalary},${salary.bonus},${salary.overtime},${salary.advance},${salary.fine},${salary.netSalary},"${status}"\n`;
+    });
+    
+    // Download CSV
+    downloadCSV(csv, `maas-hesabati-${month}.csv`);
+    UI.showSuccess('Maaş hesabatı ixrac edildi!');
+}
+
+function exportTableToExcel(tableId, filename) {
+    const table = document.getElementById(tableId);
+    if (!table) {
+        UI.showError('Cədvəl tapılmadı!');
+        return;
+    }
+    
+    let csv = '\uFEFF';
+    const rows = table.querySelectorAll('tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('th, td');
+        const rowData = [];
+        cells.forEach(cell => {
+            // Remove HTML tags and get text content
+            let text = cell.textContent.replace(/"/g, '""').trim();
+            rowData.push(`"${text}"`);
+        });
+        csv += rowData.join(',') + '\n';
+    });
+    
+    downloadCSV(csv, `${filename}.csv`);
+    UI.showSuccess('Fayl ixrac edildi!');
+}
+
+function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// ============================================
+// GLOBAL SEARCH
+// ============================================
+function initGlobalSearch() {
+    const searchInput = document.getElementById('global-search');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', debounce(function() {
+        const query = this.value.trim().toLowerCase();
+        if (query.length < 2) return;
+        
+        performGlobalSearch(query);
+    }, 300));
+    
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const query = this.value.trim().toLowerCase();
+            if (query.length >= 2) {
+                performGlobalSearch(query);
+            }
+        }
+    });
+}
+
+function performGlobalSearch(query) {
+    const results = [];
+    
+    // Search employees
+    const employees = EmployeeManager.getAll();
+    employees.forEach(emp => {
+        if (emp.fullName.toLowerCase().includes(query) || 
+            emp.username.toLowerCase().includes(query) ||
+            (emp.phone && emp.phone.includes(query))) {
+            results.push({ type: 'employee', data: emp });
+        }
+    });
+    
+    // Search projects
+    const projects = ProjectManager.getAll();
+    projects.forEach(proj => {
+        if (proj.name.toLowerCase().includes(query) || 
+            proj.location.toLowerCase().includes(query)) {
+            results.push({ type: 'project', data: proj });
+        }
+    });
+    
+    // Show search results (simplified - in a real app, you'd show a dropdown)
+    if (results.length > 0) {
+        UI.showNotification(`${results.length} nəticə tapıldı`, 'info');
+    } else {
+        UI.showNotification('Nəticə tapılmadı', 'warning');
+    }
+}
+
+// Initialize global search
+document.addEventListener('DOMContentLoaded', function() {
+    initGlobalSearch();
 });
 
 // Keyboard shortcuts

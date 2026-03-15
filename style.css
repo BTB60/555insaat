@@ -42,6 +42,14 @@
     --gray-800: #1e293b;
     --gray-900: #0f172a;
     
+    /* Dark Mode Colors */
+    --dark-bg: #0f172a;
+    --dark-bg-secondary: #1e293b;
+    --dark-bg-tertiary: #334155;
+    --dark-text: #f1f5f9;
+    --dark-text-secondary: #94a3b8;
+    --dark-border: #334155;
+    
     /* Shadows */
     --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
     --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.1);
@@ -2614,4 +2622,297 @@ textarea.form-control {
 .alert i {
     font-size: 18px;
     flex-shrink: 0;
+}
+
+/* ============================================
+   CHART STYLES
+   ============================================ */
+.chart-container {
+    position: relative;
+    height: 300px;
+    padding: var(--space-4);
+}
+
+.chart-container canvas {
+    max-height: 100%;
+}
+
+/* ============================================
+   NOTIFICATION DROPDOWN STYLES
+   ============================================ */
+.notification-dropdown {
+    position: relative;
+}
+
+.notification-panel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 360px;
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    margin-top: var(--space-2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: var(--transition);
+    z-index: 1000;
+}
+
+.notification-panel.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.notification-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+.notification-header .btn-link {
+    background: none;
+    border: none;
+    color: var(--secondary);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.notification-header .btn-link:hover {
+    text-decoration: underline;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--gray-100);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.notification-item:hover {
+    background: var(--gray-50);
+}
+
+.notification-item.unread {
+    background: var(--info-light);
+}
+
+.notification-item.unread:hover {
+    background: var(--info-light);
+    filter: brightness(0.98);
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-icon.salary {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.notification-icon.fine {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.notification-icon.task {
+    background: var(--info-light);
+    color: var(--info);
+}
+
+.notification-icon.leave {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+.notification-icon.advance {
+    background: var(--secondary-lighter);
+    color: var(--secondary);
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-content h5 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-bottom: var(--space-1);
+}
+
+.notification-content p {
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.5;
+    margin-bottom: var(--space-1);
+}
+
+.notification-content small {
+    font-size: 12px;
+    color: var(--gray-400);
+}
+
+.notification-empty {
+    text-align: center;
+    padding: var(--space-8);
+    color: var(--gray-500);
+}
+
+.notification-empty i {
+    font-size: 48px;
+    margin-bottom: var(--space-3);
+    display: block;
+}
+
+/* ============================================
+   DARK MODE STYLES
+   ============================================ */
+body.dark-mode {
+    background: var(--dark-bg);
+    color: var(--dark-text);
+}
+
+body.dark-mode .sidebar {
+    background: var(--dark-bg-secondary);
+    border-right-color: var(--dark-border);
+}
+
+body.dark-mode .sidebar-header h3,
+body.dark-mode .sidebar-header small,
+body.dark-mode .nav-item {
+    color: var(--dark-text);
+}
+
+body.dark-mode .nav-item:hover {
+    background: var(--dark-bg-tertiary);
+}
+
+body.dark-mode .main-content {
+    background: var(--dark-bg);
+}
+
+body.dark-mode .topbar {
+    background: var(--dark-bg-secondary);
+    border-bottom-color: var(--dark-border);
+}
+
+body.dark-mode .panel {
+    background: var(--dark-bg-secondary);
+    border-color: var(--dark-border);
+}
+
+body.dark-mode .panel-header h2,
+body.dark-mode .panel-header h3 {
+    color: var(--dark-text);
+}
+
+body.dark-mode .data-table th {
+    background: var(--dark-bg-tertiary);
+    color: var(--dark-text);
+}
+
+body.dark-mode .data-table td {
+    color: var(--dark-text-secondary);
+    border-bottom-color: var(--dark-border);
+}
+
+body.dark-mode .stat-card {
+    background: var(--dark-bg-secondary);
+    border-color: var(--dark-border);
+}
+
+body.dark-mode .stat-info h3 {
+    color: var(--dark-text-secondary);
+}
+
+body.dark-mode .stat-info p {
+    color: var(--dark-text);
+}
+
+body.dark-mode .form-control {
+    background: var(--dark-bg-tertiary);
+    border-color: var(--dark-border);
+    color: var(--dark-text);
+}
+
+body.dark-mode .modal-content {
+    background: var(--dark-bg-secondary);
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: var(--dark-border);
+}
+
+body.dark-mode .modal-header h3 {
+    color: var(--dark-text);
+}
+
+body.dark-mode .notification-panel {
+    background: var(--dark-bg-secondary);
+    border: 1px solid var(--dark-border);
+}
+
+body.dark-mode .notification-header {
+    border-bottom-color: var(--dark-border);
+}
+
+body.dark-mode .notification-header h4 {
+    color: var(--dark-text);
+}
+
+body.dark-mode .notification-item {
+    border-bottom-color: var(--dark-border);
+}
+
+body.dark-mode .notification-item:hover {
+    background: var(--dark-bg-tertiary);
+}
+
+body.dark-mode .notification-content h5 {
+    color: var(--dark-text);
+}
+
+body.dark-mode .notification-content p {
+    color: var(--dark-text-secondary);
+}
+
+body.dark-mode .search-box {
+    background: var(--dark-bg-tertiary);
+    border-color: var(--dark-border);
+}
+
+body.dark-mode .search-box input {
+    color: var(--dark-text);
+}
+
+body.dark-mode .search-box input::placeholder {
+    color: var(--dark-text-secondary);
 }

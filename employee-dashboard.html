@@ -154,7 +154,7 @@
                         </div>
                         <div class="stat-info">
                             <h3>Bu Ay İş Günü</h3>
-                            <p>22</p>
+                            <p id="emp-stat-work-days">-</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -163,7 +163,7 @@
                         </div>
                         <div class="stat-info">
                             <h3>Aylıq Maaş</h3>
-                            <p>1,200 ₼</p>
+                            <p id="emp-stat-salary">-</p>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -172,7 +172,7 @@
                         </div>
                         <div class="stat-info">
                             <h3>Cari Avans</h3>
-                            <p>150 ₼</p>
+                            <p id="emp-stat-advance">-</p>
                         </div>
                     </div>
                 </div>
@@ -193,19 +193,19 @@
                     </div>
                     <div class="attendance-summary">
                         <div class="summary-item present">
-                            <span class="count">18</span>
+                            <span class="count" id="emp-attendance-present">-</span>
                             <span class="label">İş günü</span>
                         </div>
                         <div class="summary-item late">
-                            <span class="count">2</span>
+                            <span class="count" id="emp-attendance-late">-</span>
                             <span class="label">Gecikmə</span>
                         </div>
                         <div class="summary-item absent">
-                            <span class="count">1</span>
+                            <span class="count" id="emp-attendance-absent">-</span>
                             <span class="label">İznsiz</span>
                         </div>
                         <div class="summary-item excused">
-                            <span class="count">1</span>
+                            <span class="count" id="emp-attendance-excused">-</span>
                             <span class="label">İznlə</span>
                         </div>
                     </div>
@@ -253,27 +253,8 @@
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Mart 2025</td>
-                                    <td>1,200 ₼</td>
-                                    <td>100 ₼</td>
-                                    <td>50 ₼</td>
-                                    <td class="text-danger">-150 ₼</td>
-                                    <td class="text-danger">-20 ₼</td>
-                                    <td><strong>1,180 ₼</strong></td>
-                                    <td><span class="badge bg-warning">Gözləyir</span></td>
-                                </tr>
-                                <tr>
-                                    <td>Fevral 2025</td>
-                                    <td>1,200 ₼</td>
-                                    <td>0 ₼</td>
-                                    <td>30 ₼</td>
-                                    <td class="text-danger">-100 ₼</td>
-                                    <td class="text-danger">0 ₼</td>
-                                    <td><strong>1,130 ₼</strong></td>
-                                    <td><span class="badge bg-success">Ödənilib</span></td>
-                                </tr>
+                            <tbody id="employee-salary-table">
+                                <!-- Dynamic content -->
                             </tbody>
                         </table>
                     </div>
@@ -389,13 +370,8 @@
                                     <th>Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td>05.03.2025</td>
-                                    <td class="text-danger">20 ₼</td>
-                                    <td>Gecikmə (15 dəq)</td>
-                                    <td><span class="badge bg-warning">Aktiv</span></td>
-                                </tr>
+                            <tbody id="employee-fines-table">
+                                <!-- Dynamic content -->
                             </tbody>
                         </table>
                     </div>
@@ -408,23 +384,8 @@
                     <div class="panel-header">
                         <h2><i class="bi bi-list-task"></i> Tapşırıqlar</h2>
                     </div>
-                    <div class="task-list">
-                        <div class="task-item pending">
-                            <div class="task-status"></div>
-                            <div class="task-content">
-                                <h4>Beton tökmə işinə nəzarət</h4>
-                                <p>Son tarix: 20.03.2025</p>
-                                <span class="priority high">Yüksək</span>
-                            </div>
-                        </div>
-                        <div class="task-item completed">
-                            <div class="task-status"></div>
-                            <div class="task-content">
-                                <h4>Materialların qəbulu</h4>
-                                <p>Son tarix: 15.03.2025</p>
-                                <span class="priority medium">Orta</span>
-                            </div>
-                        </div>
+                    <div class="task-list" id="employee-tasks-list">
+                        <!-- Dynamic content -->
                     </div>
                 </div>
             </div>

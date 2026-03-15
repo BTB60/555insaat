@@ -928,6 +928,30 @@
                                 </select>
                             </div>
                         </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Aylıq Maaş (₼) *</label>
+                                <input type="number" id="emp-salary" class="form-control" min="0" step="1" placeholder="Məsələn: 1200" required>
+                                <small class="form-text text-muted">İşçinin aylıq baza maaşı</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Aylıq İş Günü *</label>
+                                <input type="number" id="emp-work-days" class="form-control" min="1" max="31" step="1" value="22" required>
+                                <small class="form-text text-muted">Bir ayda işləyəcəyi gün sayı (adətən 22)</small>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Günlük İş Saatı</label>
+                                <input type="number" id="emp-daily-hours" class="form-control" min="1" max="24" step="0.5" value="8">
+                                <small class="form-text text-muted">Gündəlik iş saatı (adətən 8)</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Saatlıq Əmək Haqqı (₼)</label>
+                                <input type="number" id="emp-hourly-rate" class="form-control" readonly>
+                                <small class="form-text text-muted">Avtomatik hesablanır</small>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">

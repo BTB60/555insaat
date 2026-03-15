@@ -999,6 +999,36 @@ textarea.form-control {
     opacity: 0.7;
 }
 
+/* Employee Sidebar Specific Styles */
+.employee-sidebar {
+    background: linear-gradient(180deg, var(--primary) 0%, var(--primary-light) 100%);
+}
+
+.employee-sidebar .sidebar-header {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.employee-sidebar .nav-item {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.employee-sidebar .nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--white);
+}
+
+.employee-sidebar .nav-item.active {
+    background: rgba(255, 140, 66, 0.9);
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+}
+
+.employee-sidebar .sidebar-footer {
+    background: rgba(0, 0, 0, 0.15);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* Main Content */
 .main-content {
     flex: 1;

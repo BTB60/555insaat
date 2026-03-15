@@ -970,6 +970,20 @@ const SalaryManager = {
         const employee = Storage.getUserById(employeeId);
         if (!employee || !employee.salary) return null;
         
+        // Get employee's work settings (admin defined)
+        const baseSalary = employee.salary || 0;
+        const workDays = employee.workDays || 22;
+        const dailyHours = employee.dailyHours || 8;
+        const hourlyRate = baseSalary / (workDays * dailyHours);
+        
+        // Get attendance for this month to calculate actual work days
+        const attendance = data.attendance ? data.attendance.filter(a => 
+            a.employeeId === employeeId && 
+            a.date.startsWith(month) &&
+            (a.status === 'present' || a.status === 'late')
+        ) : [];
+        const actualWorkDays = attendance.length;
+        
         // Get advances for this month
         const advances = data.advances ? data.advances.filter(a => 
             a.employeeId === employeeId && 
@@ -986,13 +1000,23 @@ const SalaryManager = {
         ) : [];
         const totalFines = fines.reduce((sum, f) => sum + f.amount, 0);
         
-        // Calculate overtime (example: 50 AZN)
-        const overtime = 50;
+        // Calculate overtime based on actual extra hours worked
+        const overtimeRecords = data.attendance ? data.attendance.filter(a => 
+            a.employeeId === employeeId && 
+            a.date.startsWith(month) &&
+            a.overtimeHours > 0
+        ) : [];
+        const totalOvertimeHours = overtimeRecords.reduce((sum, a) => sum + (a.overtimeHours || 0), 0);
+        const overtime = totalOvertimeHours * hourlyRate * 1.5; // 1.5x for overtime
         
-        // Calculate bonus (example: 100 AZN)
-        const bonus = 100;
+        // Calculate bonus (can be set by admin, default 0)
+        const bonus = employee.monthlyBonus || 0;
         
-        const netSalary = employee.salary + bonus + overtime - totalAdvances - totalFines;
+        // Calculate salary based on actual work days
+        const dailySalary = baseSalary / workDays;
+        const workedSalary = actualWorkDays * dailySalary;
+        
+        const netSalary = workedSalary + bonus + overtime - totalAdvances - totalFines;
         
         return {
             employeeId: employeeId,
@@ -1958,7 +1982,28 @@ function openEmployeeModal() {
     editingEmployeeId = null;
     document.getElementById('modal-title').textContent = 'Yeni İşçi Əlavə Et';
     document.getElementById('employeeForm').reset();
+    
+    // Set default values
+    document.getElementById('emp-work-days').value = 22;
+    document.getElementById('emp-daily-hours').value = 8;
+    document.getElementById('emp-hourly-rate').value = '';
+    
+    // Add event listeners for auto-calculating hourly rate
+    setupHourlyRateCalculation();
+    
     UI.openModal('employeeModal');
+}
+
+function setupHourlyRateCalculation() {
+    const salaryInput = document.getElementById('emp-salary');
+    const workDaysInput = document.getElementById('emp-work-days');
+    const dailyHoursInput = document.getElementById('emp-daily-hours');
+    
+    [salaryInput, workDaysInput, dailyHoursInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', calculateHourlyRate);
+        }
+    });
 }
 
 function editEmployee(id) {
@@ -1977,8 +2022,26 @@ function editEmployee(id) {
     document.getElementById('emp-department').value = employee.department || '';
     document.getElementById('emp-project').value = employee.project || '';
     document.getElementById('emp-status').value = employee.status;
+    document.getElementById('emp-salary').value = employee.salary || '';
+    document.getElementById('emp-work-days').value = employee.workDays || 22;
+    document.getElementById('emp-daily-hours').value = employee.dailyHours || 8;
+    
+    // Calculate hourly rate
+    calculateHourlyRate();
     
     UI.openModal('employeeModal');
+}
+
+function calculateHourlyRate() {
+    const salary = parseFloat(document.getElementById('emp-salary')?.value) || 0;
+    const workDays = parseFloat(document.getElementById('emp-work-days')?.value) || 22;
+    const dailyHours = parseFloat(document.getElementById('emp-daily-hours')?.value) || 8;
+    
+    const hourlyRateEl = document.getElementById('emp-hourly-rate');
+    if (hourlyRateEl && salary > 0 && workDays > 0 && dailyHours > 0) {
+        const hourlyRate = salary / (workDays * dailyHours);
+        hourlyRateEl.value = hourlyRate.toFixed(2);
+    }
 }
 
 function closeEmployeeModal() {
@@ -1995,12 +2058,25 @@ function saveEmployee() {
         position: document.getElementById('emp-position').value.trim(),
         department: document.getElementById('emp-department').value.trim(),
         project: document.getElementById('emp-project').value,
-        status: document.getElementById('emp-status').value
+        status: document.getElementById('emp-status').value,
+        salary: parseFloat(document.getElementById('emp-salary').value) || 0,
+        workDays: parseInt(document.getElementById('emp-work-days').value) || 22,
+        dailyHours: parseFloat(document.getElementById('emp-daily-hours').value) || 8
     };
 
     // Validation
     if (!employeeData.fullName || !employeeData.username || !employeeData.password) {
         UI.showError('Zəhmət olmasa bütün vacib sahələri doldurun!');
+        return;
+    }
+    
+    if (employeeData.salary <= 0) {
+        UI.showError('Aylıq maaşı düzgün daxil edin!');
+        return;
+    }
+    
+    if (employeeData.workDays <= 0 || employeeData.workDays > 31) {
+        UI.showError('Aylıq iş gününü düzgün daxil edin (1-31)!');
         return;
     }
 
@@ -3164,6 +3240,25 @@ function updateEmployeeUI(user) {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     });
+    
+    // Update stats cards
+    const workDaysEl = document.getElementById('emp-stat-work-days');
+    const salaryEl = document.getElementById('emp-stat-salary');
+    const advanceEl = document.getElementById('emp-stat-advance');
+    
+    if (workDaysEl) workDaysEl.textContent = user.workDays || 22;
+    if (salaryEl) salaryEl.textContent = UI.formatCurrency(user.salary || 0);
+    if (advanceEl) {
+        // Get current month pending advance
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const data = Storage.getData();
+        const pendingAdvance = data.advances?.filter(a => 
+            a.employeeId === user.id && 
+            a.requestedAt?.startsWith(currentMonth) &&
+            (a.status === 'pending' || a.status === 'approved')
+        ).reduce((sum, a) => sum + a.amount, 0) || 0;
+        advanceEl.textContent = UI.formatCurrency(pendingAdvance);
+    }
 }
 
 function setupEmployeeNavigation() {
@@ -3206,14 +3301,34 @@ function showEmployeePage(pageName) {
     const titleEl = document.getElementById('page-title');
     if (titleEl) titleEl.textContent = titles[pageName] || 'Profil';
     
+    const user = Auth.getCurrentUser();
+    if (!user) return;
+    
     // Load page-specific data
-    if (pageName === 'leaves') {
-        loadLeaveHistory();
-        updateLeaveBalance();
-    }
-    if (pageName === 'advances') {
-        loadAdvanceHistory();
-        updateAdvanceStats();
+    switch(pageName) {
+        case 'profile':
+            updateEmployeeUI(user);
+            break;
+        case 'attendance':
+            loadEmployeeAttendanceStats(user.id);
+            break;
+        case 'salary':
+            loadEmployeeSalaryHistory(user.id);
+            break;
+        case 'leaves':
+            loadLeaveHistory();
+            updateLeaveBalance();
+            break;
+        case 'advances':
+            loadAdvanceHistory();
+            updateAdvanceStats();
+            break;
+        case 'tasks':
+            loadEmployeeTasks(user.id);
+            break;
+        case 'fines':
+            loadEmployeeFines(user.id);
+            break;
     }
 }
 
@@ -3222,6 +3337,133 @@ function loadEmployeeData(employeeId) {
     const unreadCount = NotificationManager.getUnreadCount(employeeId);
     const badgeEl = document.querySelector('.nav-item[data-page="notifications"] .badge');
     if (badgeEl) badgeEl.textContent = unreadCount;
+    
+    // Load salary history
+    loadEmployeeSalaryHistory(employeeId);
+    
+    // Load attendance stats
+    loadEmployeeAttendanceStats(employeeId);
+    
+    // Load tasks
+    loadEmployeeTasks(employeeId);
+    
+    // Load fines
+    loadEmployeeFines(employeeId);
+}
+
+function loadEmployeeTasks(employeeId) {
+    const tasksList = document.getElementById('employee-tasks-list');
+    if (!tasksList) return;
+    
+    const tasks = TaskManager.getForEmployee(employeeId);
+    
+    if (tasks.length === 0) {
+        tasksList.innerHTML = `
+            <div class="empty-state">
+                <i class="bi bi-list-task"></i>
+                <p>Heç bir tapşırıq yoxdur</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const priorityLabels = { high: 'Yüksək', medium: 'Orta', low: 'Aşağı' };
+    const priorityClass = { high: 'high', medium: 'medium', low: 'low' };
+    
+    tasksList.innerHTML = tasks.map(task => `
+        <div class="task-item ${task.status}">
+            <div class="task-status"></div>
+            <div class="task-content">
+                <h4>${task.title}</h4>
+                <p>Son tarix: ${UI.formatDate(task.dueDate)}</p>
+                <span class="priority ${priorityClass[task.priority]}">${priorityLabels[task.priority]}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function loadEmployeeFines(employeeId) {
+    const tbody = document.getElementById('employee-fines-table');
+    if (!tbody) return;
+    
+    const fines = FineManager.getForEmployee(employeeId);
+    
+    if (fines.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-check-circle"></i>
+                        <p>Heç bir cərimə yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = fines.map(fine => `
+        <tr>
+            <td>${UI.formatDate(fine.date)}</td>
+            <td class="text-danger">${UI.formatCurrency(fine.amount)}</td>
+            <td>${fine.reason}</td>
+            <td>${UI.getStatusBadge(fine.status)}</td>
+        </tr>
+    `).join('');
+}
+
+function loadEmployeeAttendanceStats(employeeId) {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const stats = AttendanceManager.getMonthlyStats(employeeId, currentMonth);
+    
+    const presentEl = document.getElementById('emp-attendance-present');
+    const lateEl = document.getElementById('emp-attendance-late');
+    const absentEl = document.getElementById('emp-attendance-absent');
+    const excusedEl = document.getElementById('emp-attendance-excused');
+    
+    if (presentEl) presentEl.textContent = stats.present;
+    if (lateEl) lateEl.textContent = stats.late;
+    if (absentEl) absentEl.textContent = stats.absent;
+    if (excusedEl) excusedEl.textContent = stats.excused;
+}
+
+function loadEmployeeSalaryHistory(employeeId) {
+    const tbody = document.getElementById('employee-salary-table');
+    if (!tbody) return;
+    
+    const salaries = SalaryManager.getForEmployee(employeeId);
+    
+    if (salaries.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="text-center py-5">
+                    <div class="empty-state">
+                        <i class="bi bi-cash-stack"></i>
+                        <p>Heç bir maaş qeydi yoxdur</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = salaries.map(salary => {
+        const statusText = salary.status === 'paid' ? 'Ödənilib' : 'Gözləyir';
+        const statusClass = salary.status === 'paid' ? 'bg-success' : 'bg-warning';
+        
+        return `
+            <tr>
+                <td>${salary.month}</td>
+                <td>${UI.formatCurrency(salary.baseSalary)}</td>
+                <td class="text-success">+${UI.formatCurrency(salary.bonus)}</td>
+                <td class="text-success">+${UI.formatCurrency(salary.overtime)}</td>
+                <td class="text-danger">-${UI.formatCurrency(salary.advance)}</td>
+                <td class="text-danger">-${UI.formatCurrency(salary.fine)}</td>
+                <td><strong>${UI.formatCurrency(salary.netSalary)}</strong></td>
+                <td><span class="badge ${statusClass}">${statusText}</span></td>
+            </tr>
+        `;
+    }).join('');
 }
 
 // ============================================

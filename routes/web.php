@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Admin routes
-Route::middleware(['auth', 'role:super-admin|admin|accountant'])
+Route::middleware(['auth', 'role:super-admin,admin,accountant'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -97,7 +97,7 @@ Route::middleware(['auth', 'role:super-admin|admin|accountant'])
     });
 
 // Worker panel routes
-Route::middleware(['auth', 'role:worker'])
+Route::middleware(['auth'])
     ->prefix('worker')
     ->name('worker.')
     ->group(function () {

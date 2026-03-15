@@ -1,222 +1,208 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Admin Panel')
 
 @section('content')
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">Dashboard</h1>
-    <div class="btn-toolbar mb-2 mb-md-0">
-        <div class="btn-group me-2">
-            <span class="text-muted">{{ now()->format('d.m.Y') }}</span>
+<div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="bi bi-building"></i>
+            <div>
+                <h3>555 İnşaat</h3>
+                <small>Admin Panel</small>
+            </div>
         </div>
-    </div>
-</div>
 
-<!-- Statistics Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-0">Ümumi İşçilər</h6>
-                        <h2 class="mt-2 mb-0">{{ $stats['total_employees'] ?? 0 }}</h2>
-                    </div>
-                    <i class="bi bi-people fs-1"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-success h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-0">Aktiv Obyektlər</h6>
-                        <h2 class="mt-2 mb-0">{{ $stats['active_projects'] ?? 0 }}</h2>
-                    </div>
-                    <i class="bi bi-building fs-1"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-warning h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-0">Bugün Gələnlər</h6>
-                        <h2 class="mt-2 mb-0">{{ $stats['today_present'] ?? 0 }}</h2>
-                    </div>
-                    <i class="bi bi-calendar-check fs-1"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-white bg-danger h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="card-title mb-0">Gözləyən Avans</h6>
-                        <h2 class="mt-2 mb-0">{{ $stats['pending_advances'] ?? 0 }}</h2>
-                    </div>
-                    <i class="bi bi-cash-stack fs-1"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+        <nav class="sidebar-nav">
+            <a href="{{ route('admin.dashboard') }}" class="nav-item active">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="{{ route('admin.employees.index') }}" class="nav-item">
+                <i class="bi bi-people"></i> İşçilər
+            </a>
+            <a href="{{ route('admin.projects.index') }}" class="nav-item">
+                <i class="bi bi-building"></i> Obyektlər
+            </a>
+            <a href="{{ route('admin.attendances.index') }}" class="nav-item">
+                <i class="bi bi-calendar-check"></i> Davamiyyət
+            </a>
+            <a href="{{ route('admin.salaries.index') }}" class="nav-item">
+                <i class="bi bi-cash-stack"></i> Maaşlar
+            </a>
+            <a href="{{ route('admin.advances.index') }}" class="nav-item">
+                <i class="bi bi-cash"></i> Avanslar
+            </a>
+            <a href="{{ route('admin.fines.index') }}" class="nav-item">
+                <i class="bi bi-exclamation-triangle"></i> Cərimələr
+            </a>
+            <a href="{{ route('admin.tasks.index') }}" class="nav-item">
+                <i class="bi bi-list-task"></i> Tapşırıqlar
+            </a>
+            <a href="{{ route('admin.reports.index') }}" class="nav-item">
+                <i class="bi bi-graph-up"></i> Hesabatlar
+            </a>
+        </nav>
 
-<div class="row g-4">
-    <!-- Attendance Chart -->
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="card-title mb-0">Aylıq Davamiyyət Statistikası</h5>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="avatar">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                <div>
+                    <strong>{{ auth()->user()->name }}</strong>
+                    <small>Admin</small>
+                </div>
             </div>
-            <div class="card-body">
-                <canvas id="attendanceChart" height="250"></canvas>
-            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn-logout">
+                    <i class="bi bi-box-arrow-right"></i> Çıxış
+                </button>
+            </form>
         </div>
-    </div>
+    </aside>
 
-    <!-- Recent Activity -->
-    <div class="col-md-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h5 class="card-title mb-0">Son Əməliyyatlar</h5>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1>Dashboard</h1>
+                <p>555 İnşaat idarəetmə panelinə xoş gəlmisiniz</p>
             </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    @forelse($recentActivities ?? [] as $activity)
-                        <div class="list-group-item">
-                            <div class="d-flex w-100 justify-content-between">
-                                <small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small>
-                            </div>
-                            <p class="mb-1">{{ $activity->description }}</p>
-                        </div>
-                    @empty
-                        <div class="list-group-item text-center text-muted py-4">
-                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                            Heç bir əməliyyat yoxdur
-                        </div>
-                    @endforelse
+            <div class="topbar-right">
+                <div class="search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" placeholder="Axtarış...">
+                </div>
+            </div>
+        </header>
+
+        @if(session('success'))
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i> {{ session('error') }}
+            </div>
+        @endif
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Ümumi İşçi</h3>
+                    <p>{{ $stats['total_employees'] ?? 0 }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="bi bi-person-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Aktiv İşçi</h3>
+                    <p>{{ $stats['active_employees'] ?? 0 }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Bu Gün Gələn</h3>
+                    <p>{{ $stats['today_attendance'] ?? 0 }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Aktiv Obyekt</h3>
+                    <p>{{ $stats['active_projects'] ?? 0 }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon teal">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Aylıq Maaş Fondu</h3>
+                    <p>{{ number_format($stats['monthly_salary_fund'] ?? 0, 2) }} ₼</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Bu Ay Cərimə</h3>
+                    <p>{{ number_format($stats['monthly_fines'] ?? 0, 2) }} ₼</p>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="row g-4 mt-2">
-    <!-- Pending Tasks -->
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Gözləyən Tapşırıqlar</h5>
-                <a href="{{ route('admin.tasks.index') }}" class="btn btn-sm btn-outline-primary">Hamısı</a>
-            </div>
-            <div class="card-body p-0">
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <div class="panel large">
+                <div class="panel-header">
+                    <h2><i class="bi bi-people"></i> Son əlavə olunan işçilər</h2>
+                    <a href="{{ route('admin.employees.index') }}" class="btn btn-primary">Hamısına bax</a>
+                </div>
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                    <table class="data-table">
+                        <thead>
                             <tr>
-                                <th>Tapşırıq</th>
-                                <th>Prioritet</th>
-                                <th>Son tarix</th>
+                                <th>Ad Soyad</th>
+                                <th>Telefon</th>
+                                <th>Vəzifə</th>
+                                <th>Obyekt</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($pendingTasks ?? [] as $task)
+                            @forelse($recent_employees ?? [] as $employee)
                                 <tr>
-                                    <td>{{ Str::limit($task->title, 30) }}</td>
+                                    <td>{{ $employee->user->name ?? '-' }}</td>
+                                    <td>{{ $employee->user->phone ?? '-' }}</td>
+                                    <td>{{ $employee->position ?? '-' }}</td>
+                                    <td>{{ $employee->currentProject->name ?? '-' }}</td>
                                     <td>
-                                        <span class="badge bg-{{ $task->priority_color }}">
-                                            {{ $task->priority_label }}
+                                        <span class="badge {{ $employee->status == 'active' ? 'active' : 'inactive' }}">
+                                            {{ $employee->status == 'active' ? 'Aktiv' : 'Passiv' }}
                                         </span>
                                     </td>
-                                    <td>{{ $task->due_date?->format('d.m.Y') ?? '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="text-center text-muted py-4">
-                                        <i class="bi bi-check-circle fs-2 d-block mb-2 text-success"></i>
-                                        Gözləyən tapşırıq yoxdur
-                                    </td>
+                                    <td colspan="5" class="text-center">İşçi yoxdur</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Salary Summary -->
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Cari Ay Maaşları</h5>
-                <a href="{{ route('admin.salaries.index') }}" class="btn btn-sm btn-outline-primary">Detallar</a>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-4">
-                        <h4 class="text-primary">{{ $salaryStats['calculated'] ?? 0 }}</h4>
-                        <small class="text-muted">Hesablanmış</small>
+            <div class="side-panels">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2><i class="bi bi-list-task"></i> Son Tapşırıqlar</h2>
                     </div>
-                    <div class="col-4">
-                        <h4 class="text-warning">{{ $salaryStats['pending'] ?? 0 }}</h4>
-                        <small class="text-muted">Gözləyən</small>
-                    </div>
-                    <div class="col-4">
-                        <h4 class="text-success">{{ $salaryStats['paid'] ?? 0 }}</h4>
-                        <small class="text-muted">Ödənilmiş</small>
-                    </div>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between">
-                    <span>Ümumi məbləğ:</span>
-                    <strong>{{ number_format($salaryStats['total_amount'] ?? 0, 2) }} AZN</strong>
+                    <ul class="list-group">
+                        @forelse($recent_tasks ?? [] as $task)
+                            <li>{{ $task->title }}</li>
+                        @empty
+                            <li class="text-muted">Tapşırıq yoxdur</li>
+                        @endforelse
+                    </ul>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-// Attendance Chart
-const ctx = document.getElementById('attendanceChart').getContext('2d');
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ['Gəlib', 'Gecikib', 'Gəlməyib', 'Üzrlü', 'Məzuniyyət'],
-        datasets: [{
-            label: 'Bu ay',
-            data: [{{ $attendanceData['present'] ?? 0 }}, {{ $attendanceData['late'] ?? 0 }}, {{ $attendanceData['absent'] ?? 0 }}, {{ $attendanceData['excused'] ?? 0 }}, {{ $attendanceData['vacation'] ?? 0 }}],
-            backgroundColor: ['#198754', '#ffc107', '#dc3545', '#0dcaf0', '#6c757d'],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1
-                }
-            }
-        }
-    }
-});
-</script>
-@endpush

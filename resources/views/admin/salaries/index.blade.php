@@ -1,206 +1,188 @@
 @extends('layouts.app')
 
 @section('title', 'Maaşlar')
+@section('subtitle', 'İşçi maaşlarının hesablanması və ödənişləri')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">Maaşlar</h1>
-    <div>
-        <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#calculateModal">
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-title">
+        <h1>Maaşlar</h1>
+        <p>{{ now()->format('F Y') }} - Cari ay</p>
+    </div>
+    <div class="header-actions">
+        <a href="{{ route('admin.salaries.create') }}" class="btn btn-primary btn-lg">
             <i class="bi bi-calculator"></i> Maaş Hesabla
-        </button>
-        <a href="{{ route('admin.reports.salary') }}" class="btn btn-outline-primary">
-            <i class="bi bi-file-earmark-pdf"></i> Hesabat
         </a>
     </div>
 </div>
 
-<!-- Month/Year Filter -->
-<div class="card shadow-sm mb-4">
+<!-- Stats Cards -->
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="bi bi-calculator"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Hesablanan</h3>
+            <p class="stat-value">{{ $stats['calculated'] ?? 0 }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Gözləyən</h3>
+            <p class="stat-value">{{ $stats['pending'] ?? 0 }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Ödənən</h3>
+            <p class="stat-value">{{ $stats['paid'] ?? 0 }}</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <div class="stat-info">
+            <h3>Ümumi Məbləğ</h3>
+            <p class="stat-value">{{ number_format($stats['total_amount'] ?? 0, 0) }} ₼</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
     <div class="card-body">
-        <form action="{{ route('admin.salaries.index') }}" method="GET" class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label">İl</label>
-                <select class="form-select" name="year">
-                    @for($y = now()->year; $y >= now()->year - 5; $y--)
-                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
-                    @endfor
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label class="form-label">Ay</label>
-                <select class="form-select" name="month">
-                    @foreach(['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'] as $index => $monthName)
-                        <option value="{{ $index + 1 }}" {{ $month == $index + 1 ? 'selected' : '' }}>{{ $monthName }}</option>
+        <form action="{{ route('admin.salaries.index') }}" method="GET" class="filter-grid">
+            <div class="form-group">
+                <label>İşçi</label>
+                <select class="form-control" name="employee_id">
+                    <option value="">Hamısı</option>
+                    @foreach($employees ?? [] as $employee)
+                        <option value="{{ $employee->id }}" {{ request('employee_id') == $employee->id ? 'selected' : '' }}>
+                            {{ $employee->full_name }}
+                        </option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search me-2"></i>Göstər
+            <div class="form-group">
+                <label>İl</label>
+                <select class="form-control" name="year">
+                    @for($y = now()->year; $y >= now()->year - 2; $y--)
+                        <option value="{{ $y }}" {{ request('year', now()->year) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ay</label>
+                <select class="form-control" name="month">
+                    @foreach(['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'] as $key => $month)
+                        <option value="{{ $key + 1 }}" {{ request('month', now()->month) == $key + 1 ? 'selected' : '' }}>{{ $month }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select class="form-control" name="status">
+                    <option value="">Hamısı</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Gözləyir</option>
+                    <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Ödənib</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <button type="submit" class="btn btn-secondary w-100">
+                    <i class="bi bi-search"></i> Filtr
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <h6 class="card-title">Ümumi Maaş</h6>
-                <h3>{{ number_format($salaries->sum('final_salary'), 2) }} AZN</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark">
-            <div class="card-body">
-                <h6 class="card-title">Gözləyən</h6>
-                <h3>{{ $salaries->where('payment_status', 'pending')->count() }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <h6 class="card-title">Ödənilmiş</h6>
-                <h3>{{ $salaries->where('payment_status', 'paid')->count() }}</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <h6 class="card-title">Hesablanmış</h6>
-                <h3>{{ $salaries->count() }}</h3>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover" id="salariesTable">
-                <thead>
+<!-- Salaries Table -->
+<div class="card">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>İşçi</th>
+                    <th>Dövr</th>
+                    <th>Əsas Maaş</th>
+                    <th>Avans</th>
+                    <th>Cərimə</th>
+                    <th>Bonus</th>
+                    <th>Yekun</th>
+                    <th>Status</th>
+                    <th width="150">Əməliyyatlar</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($salaries ?? [] as $salary)
                     <tr>
-                        <th>İşçi</th>
-                        <th>Baza Maaş</th>
-                        <th>Bonus</th>
-                        <th>Əlavə Saat</th>
-                        <th>Avans</th>
-                        <th>Cərimə</th>
-                        <th>Yekun</th>
-                        <th>Status</th>
-                        <th>Əməliyyatlar</th>
+                        <td>
+                            <strong>{{ $salary->employee?->full_name ?? '-' }}</strong>
+                        </td>
+                        <td>{{ $salary->month }}.{{ $salary->year }}</td>
+                        <td>{{ number_format($salary->base_salary, 2) }} ₼</td>
+                        <td class="text-danger">-{{ number_format($salary->total_advances, 2) }} ₼</td>
+                        <td class="text-danger">-{{ number_format($salary->total_fines, 2) }} ₼</td>
+                        <td class="text-success">+{{ number_format($salary->bonus, 2) }} ₼</td>
+                        <td>
+                            <strong>{{ number_format($salary->final_salary, 2) }} ₼</strong>
+                        </td>
+                        <td>
+                            @if($salary->status == 'paid')
+                                <span class="badge badge-success">Ödənib</span>
+                                <small class="d-block text-muted">{{ $salary->paid_at?->format('d.m.Y') }}</small>
+                            @else
+                                <span class="badge badge-warning">Gözləyir</span>
+                            @endif
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ route('admin.salaries.show', $salary) }}" class="btn btn-sm btn-info" title="Detallar">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                @if($salary->status == 'pending')
+                                    <form action="{{ route('admin.salaries.pay', $salary) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success" title="Ödə">
+                                            <i class="bi bi-cash"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                                <a href="{{ route('admin.salaries.edit', $salary) }}" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @forelse($salaries as $salary)
-                        <tr>
-                            <td>{{ $salary->employee->full_name }}</td>
-                            <td>{{ number_format($salary->base_salary, 2) }}</td>
-                            <td>{{ number_format($salary->bonus, 2) }}</td>
-                            <td>{{ number_format($salary->overtime_amount, 2) }}</td>
-                            <td class="text-danger">-{{ number_format($salary->advance_deduction, 2) }}</td>
-                            <td class="text-danger">-{{ number_format($salary->fine_deduction, 2) }}</td>
-                            <td><strong>{{ number_format($salary->final_salary, 2) }}</strong></td>
-                            <td>
-                                <span class="badge bg-{{ $salary->payment_status_color }}">
-                                    {{ $salary->payment_status_label }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    @if($salary->payment_status === 'pending')
-                                        <button type="button" class="btn btn-success" onclick="paySalary({{ $salary->id }})" title="Ödə">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ $salary->id }}" title="Redaktə">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                    @endif
-                                    <a href="{{ route('admin.salaries.show', $salary) }}" class="btn btn-info" title="Bax">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="text-center py-4">
-                                <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
-                                Bu ay üçün maaş hesablanmayıb
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="mt-3">
-            {{ $salaries->links() }}
-        </div>
+                @empty
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <i class="bi bi-cash" style="font-size:48px;color:var(--gray-400);"></i>
+                            <p class="mt-3 text-muted">Bu dövr üçün maaş hesablanmayıb</p>
+                            <a href="{{ route('admin.salaries.create') }}" class="btn btn-primary mt-2">
+                                <i class="bi bi-calculator"></i> Maaş Hesabla
+                            </a>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
-</div>
-
-<!-- Calculate Modal -->
-<div class="modal fade" id="calculateModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Maaş Hesabla</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form action="{{ route('admin.salaries.calculate') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">İşçi</label>
-                        <select class="form-select" name="employee_id" required>
-                            <option value="">Seçin</option>
-                            @foreach($employees as $employee)
-                                <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <input type="hidden" name="year" value="{{ $year }}">
-                    <input type="hidden" name="month" value="{{ $month }}">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bağla</button>
-                    <button type="submit" class="btn btn-primary">Hesabla</button>
-                </div>
-            </form>
-        </div>
+    
+    @if(($salaries ?? collect())->hasPages())
+    <div class="card-footer">
+        {{ $salaries->links() }}
     </div>
+    @endif
 </div>
 @endsection
-
-@push('scripts')
-<script>
-$(document).ready(function() {
-    $('#salariesTable').DataTable({
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/az.json'
-        },
-        pageLength: 25,
-        ordering: true,
-        searching: true
-    });
-});
-
-function paySalary(salaryId) {
-    if(confirm('Maaşı ödədiyinizə əminsiniz?')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/admin/salaries/' + salaryId + '/pay';
-        form.innerHTML = '@csrf';
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
-</script>
-@endpush

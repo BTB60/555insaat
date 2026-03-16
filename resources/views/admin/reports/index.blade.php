@@ -1,111 +1,186 @@
 @extends('layouts.app')
 
 @section('title', 'Hesabatlar')
+@section('subtitle', 'Ətraflı statistik hesabatlar')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">Hesabatlar</h1>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-title">
+        <h1>Hesabatlar</h1>
+        <p>Statistik və analitik hesabatlar</p>
+    </div>
 </div>
 
-<div class="row g-4">
-    <!-- Worker Report -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-people fs-1 text-primary mb-3"></i>
-                <h5>İşçi Siyahısı</h5>
-                <p class="text-muted">İşçilərin tam siyahısı və məlumatları</p>
-                <a href="{{ route('admin.reports.workers') }}" class="btn btn-outline-primary">Hesabatı aç</a>
-            </div>
-        </div>
-    </div>
-    
+<!-- Report Types -->
+<div class="dashboard-grid mb-4">
     <!-- Attendance Report -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-calendar-check fs-1 text-success mb-3"></i>
-                <h5>Davamiyyət Hesabatı</h5>
-                <p class="text-muted">Tarix aralığında davamiyyət məlumatları</p>
-                <a href="{{ route('admin.reports.attendance') }}" class="btn btn-outline-success">Hesabatı aç</a>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-calendar-check"></i> Davamiyyət Hesabatı</h3>
+        </div>
+        <div class="card-body">
+            <p>İşçilərin aylıq və illik davamiyyət statistikası</p>
+            <form action="{{ route('admin.reports.attendance') }}" method="GET" class="row g-2">
+                <div class="col-6">
+                    <select class="form-control" name="month">
+                        @foreach(['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'] as $key => $month)
+                            <option value="{{ $key + 1 }}" {{ now()->month == $key + 1 ? 'selected' : '' }}>{{ $month }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-6">
+                    <select class="form-control" name="year">
+                        @for($y = now()->year; $y >= now()->year - 2; $y--)
+                            <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-file-earmark-text"></i> Hesabatı Gör
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-    
+
     <!-- Salary Report -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-cash-stack fs-1 text-warning mb-3"></i>
-                <h5>Maaş Hesabatı</h5>
-                <p class="text-muted">Aylıq maaş hesabatı və ödənişlər</p>
-                <a href="{{ route('admin.reports.salary') }}" class="btn btn-outline-warning">Hesabatı aç</a>
-            </div>
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-cash-stack"></i> Maaş Hesabatı</h3>
+        </div>
+        <div class="card-body">
+            <p>Aylıq maaş hesablanması və ödənişlər</p>
+            <form action="{{ route('admin.reports.salary') }}" method="GET" class="row g-2">
+                <div class="col-6">
+                    <select class="form-control" name="month">
+                        @foreach(['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'] as $key => $month)
+                            <option value="{{ $key + 1 }}" {{ now()->month == $key + 1 ? 'selected' : '' }}>{{ $month }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-6">
+                    <select class="form-control" name="year">
+                        @for($y = now()->year; $y >= now()->year - 2; $y--)
+                            <option value="{{ $y }}" {{ now()->year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-file-earmark-text"></i> Hesabatı Gör
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-    
-    <!-- Advance Report -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-cash fs-1 text-info mb-3"></i>
-                <h5>Avans Hesabatı</h5>
-                <p class="text-muted">Verilən avansların hesabatı</p>
-                <a href="{{ route('admin.reports.advances') }}" class="btn btn-outline-info">Hesabatı aç</a>
-            </div>
+
+    <!-- Project Report -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-building"></i> Obyekt Hesabatı</h3>
+        </div>
+        <div class="card-body">
+            <p>Obyektlərə görə işçi və xərclər</p>
+            <form action="{{ route('admin.reports.project') }}" method="GET" class="row g-2">
+                <div class="col-12">
+                    <select class="form-control" name="project_id">
+                        <option value="">Bütün obyektlər</option>
+                        @foreach($projects ?? [] as $project)
+                            <option value="{{ $project->id }}">{{ $project->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-file-earmark-text"></i> Hesabatı Gör
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-    
-    <!-- Penalty Report -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-exclamation-triangle fs-1 text-danger mb-3"></i>
-                <h5>Cərimə Hesabatı</h5>
-                <p class="text-muted">Tətbiq edilən cərimələrin hesabatı</p>
-                <a href="{{ route('admin.reports.penalties') }}" class="btn btn-outline-danger">Hesabatı aç</a>
-            </div>
+
+    <!-- Employee Report -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="bi bi-person"></i> İşçi Hesabatı</h3>
         </div>
-    </div>
-    
-    <!-- Task Report -->
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                <i class="bi bi-list-task fs-1 text-secondary mb-3"></i>
-                <h5>Tapşırıq Hesabatı</h5>
-                <p class="text-muted">Tapşırıqların icra vəziyyəti</p>
-                <a href="{{ route('admin.reports.tasks') }}" class="btn btn-outline-secondary">Hesabatı aç</a>
-            </div>
+        <div class="card-body">
+            <p>Tək işçinin detallı hesabatı</p>
+            <form action="{{ route('admin.reports.employee') }}" method="GET" class="row g-2">
+                <div class="col-12">
+                    <select class="form-control" name="employee_id" required>
+                        <option value="">İşçi seçin</option>
+                        @foreach($employees ?? [] as $employee)
+                            <option value="{{ $employee->id }}">{{ $employee->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-file-earmark-text"></i> Hesabatı Gör
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm mt-4">
+<!-- Quick Stats -->
+<div class="card">
     <div class="card-header">
-        <h5 class="mb-0">Export Formatları</h5>
+        <h3><i class="bi bi-graph-up"></i> Ümumi Statistika</h3>
     </div>
     <div class="card-body">
-        <div class="row">
-            <div class="col-md-4">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-file-pdf text-danger fs-4 me-2"></i>
-                    <span>PDF - Çap üçün optimallaşdırılmış</span>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Ümumi İşçi</h3>
+                    <p class="stat-value">{{ $totalEmployees ?? 0 }}</p>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-file-excel text-success fs-4 me-2"></i>
-                    <span>Excel - Excel proqramında açmaq üçün</span>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="bi bi-building"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Obyektlər</h3>
+                    <p class="stat-value">{{ $totalProjects ?? 0 }}</p>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="d-flex align-items-center mb-2">
-                    <i class="bi bi-filetype-csv text-primary fs-4 me-2"></i>
-                    <span>CSV - Mətn formatlı data faylı</span>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>İllik Maaş Fondu</h3>
+                    <p class="stat-value">{{ number_format($yearlySalary ?? 0, 0) }} ₼</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>İllik Cərimə</h3>
+                    <p class="stat-value">{{ number_format($yearlyFines ?? 0, 0) }} ₼</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+</style>
+@endpush

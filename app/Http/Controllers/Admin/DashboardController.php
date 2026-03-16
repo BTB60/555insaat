@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Attendance;
 use App\Models\Advance;
 use App\Models\Salary;
+use App\Models\Fine;
 use App\Models\Task;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
@@ -20,12 +21,15 @@ class DashboardController extends Controller
         // Statistics
         $stats = [
             'total_employees' => Employee::count(),
-            'active_employees' => Employee::active()->count(),
-            'active_projects' => Project::active()->count(),
+            'active_employees' => Employee::where('status', 'active')->count(),
+            'active_projects' => Project::where('status', 'active')->count(),
             'today_present' => Attendance::where('date', today())
                 ->whereIn('status', ['present', 'late'])
                 ->count(),
-            'pending_advances' => Advance::pending()->count(),
+            'pending_advances' => Advance::where('status', 'pending')->count(),
+            'monthly_fines' => Fine::whereMonth('fine_date', now()->month)
+                ->whereYear('fine_date', now()->year)
+                ->sum('amount'),
         ];
 
         // Attendance data for chart

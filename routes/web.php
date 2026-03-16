@@ -16,7 +16,7 @@ use App\Http\Controllers\Worker\ProfileController;
 use App\Http\Controllers\Worker\AttendanceController as WorkerAttendanceController;
 use App\Http\Controllers\Worker\SalaryController as WorkerSalaryController;
 
-// Public routes
+// Public routes - Ana səhifə loginə yönləndir
 Route::get('/', fn() => redirect('/login'));
 
 // Auth routes
@@ -35,12 +35,13 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::post('logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])
+    Route::get('logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+    Route::post('logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy']);
 });
 
 // Admin routes
-Route::middleware(['auth', 'role:super-admin,admin,accountant'])
+Route::middleware(['role:super-admin,admin,accountant'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -96,14 +97,10 @@ Route::middleware(['auth', 'role:super-admin,admin,accountant'])
         Route::get('reports/tasks', [ReportController::class, 'tasksReport'])->name('reports.tasks');
     });
 
-// Worker panel routes
+// Worker panel routes - sadə versiya
 Route::middleware(['auth'])
     ->prefix('worker')
     ->name('worker.')
     ->group(function () {
         Route::get('/dashboard', [WorkerDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
-        Route::get('/attendances', [WorkerAttendanceController::class, 'index'])->name('attendances');
-        Route::get('/salaries', [WorkerSalaryController::class, 'index'])->name('salaries');
-        Route::get('/salaries/{salary}/pdf', [WorkerSalaryController::class, 'downloadPdf'])->name('salaries.pdf');
     });

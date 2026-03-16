@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.guest')
 
 @section('title', 'Giriş')
 
@@ -24,7 +24,7 @@
                     <label>İstifadəçi adı və ya Email</label>
                     <div class="input-group">
                         <i class="bi bi-person"></i>
-                        <input type="text" name="email" class="form-control" placeholder="İstifadəçi adı" required autofocus>
+                        <input type="text" name="email" class="form-control" placeholder="Email" required autofocus>
                     </div>
                 </div>
 
